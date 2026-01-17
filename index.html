@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIM MINSU의 페이지</title>
+    <style>
+        /* 전체 페이지 스타일 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        /* 프로필 섹션 */
+        .profile-section {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid #333;
+            margin: 0 auto 20px;
+            background: #fafafa;
+            overflow: hidden;
+        }
+
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-section h1 {
+            margin: 10px 0;
+            font-size: 32px;
+            color: #222;
+            font-weight: 600;
+        }
+
+        .profile-section p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* 취미/관심사 태그 */
+        .tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .tag {
+            background: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        /* 일기 섹션 */
+        .diary-section {
+            padding: 40px;
+        }
+
+        .diary-section h2 {
+            color: #333;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        /* 일기 목록 항목 */
+        .diary-item {
+            background: #fafafa;
+            border-left: 4px solid #333;
+            padding: 20px 25px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .diary-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background: #f0f0f0;
+        }
+
+        .diary-item-left {
+            flex: 1;
+        }
+
+        .diary-title {
+            color: #222;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .diary-date {
+            color: #888;
+            font-size: 13px;
+        }
+
+        .diary-arrow {
+            color: #666;
+            font-size: 20px;
+        }
+
+        /* 일기 상세 페이지 */
+        .diary-detail {
+            display: none;
+            padding: 40px;
+            animation: fadeIn 0.3s;
+        }
+
+        .diary-detail.active {
+            display: block;
+        }
+
+        .back-button {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 30px;
+            transition: background 0.2s;
+        }
+
+        .back-button:hover {
+            background: #555;
+        }
+
+        .detail-date {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .detail-title {
+            color: #222;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+
+        .detail-content {
+            color: #444;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* 푸터 */
+        .footer {
+            background: #fafafa;
+            padding: 20px;
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 프로필 섹션 -->
+        <div id="profileSection" class="profile-section">
+            <div class="profile-image">
+                <img src="https://i.ibb.co/CpBg0hNY/profile.png" alt="Profile" id="profileImg">
+            </div>
+            <h1>KIM MINSU</h1>
+            <p>Beginner Developer Starting to Code</p>
+            <p>📍 Samjeon-dong, Seoul, South Korea</p>
+            <p style="color: #888; font-size: 14px; margin-top: 8px;">🎂 1997.01.04</p>
+            
+            <div class="tags">
+                <span class="tag">🤖 AI Learning</span>
+                <span class="tag">💻 Coding</span>
+            </div>
+        </div>
+
+        <!-- 일기 목록 섹션 -->
+        <div id="diaryList" class="diary-section">
+            <h2>📝 Diary</h2>
+
+            <div class="diary-item" onclick="showDiary(0)">
+                <div class="diary-item-left">
+                    <div class="diary-title">First Day of Coding Challenge</div>
+                    <div class="diary-date">January 17, 2026</div>
+                </div>
+                <div class="diary-arrow">→</div>
+            </div>
+        </div>
+
+        <!-- 일기 상세 페이지 -->
+        <div id="diaryDetail" class="diary-detail">
+            <button class="back-button" onclick="showList()">← Back to List</button>
+            <div class="detail-date" id="detailDate"></div>
+            <div class="detail-title" id="detailTitle"></div>
+            <div class="detail-content" id="detailContent"></div>
+        </div>
+
+        <!-- 푸터 -->
+        <div class="footer">
+            ✨ KIM MINSU's First Webpage ✨
+        </div>
+    </div>
+
+    <script>
+        // Diary data
+        const diaries = [
+            {
+                title: "First Day of Coding Challenge",
+                date: "January 17, 2026",
+                content: `Today I started studying coding for the first time.
+
+To be honest, I still don't understand how it works and coding languages are too difficult and I don't even know what I'm doing right now.
+
+Today, since it's my first time, I'm going to start with something simple.
+
+The coding system told me to try making a website, so I'm going to make one, and I plan to gradually grow this website and make it entirely my own.`
+            }
+        ];
+
+        // Show diary detail
+        function showDiary(index) {
+            const diary = diaries[index];
+            document.getElementById('detailDate').textContent = diary.date;
+            document.getElementById('detailTitle').textContent = diary.title;
+            document.getElementById('detailContent').textContent = diary.content;
+            
+            document.getElementById('profileSection').classList.add('hidden');
+            document.getElementById('diaryList').classList.add('hidden');
+            document.getElementById('diaryDetail').classList.add('active');
+        }
+
+        // Return to list
+        function showList() {
+            document.getElementById('profileSection').classList.remove('hidden');
+            document.getElementById('diaryList').classList.remove('hidden');
+            document.getElementById('diaryDetail').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
