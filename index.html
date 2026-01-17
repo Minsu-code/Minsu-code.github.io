@@ -56,11 +56,6 @@
         .loading { text-align: center; padding: 40px; color: #888; }
         .hidden { display: none; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .portfolio-section { padding: 40px; border-top: 1px solid #e0e0e0; }
-        .portfolio-section h2 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; font-weight: 600; }
-        .portfolio-subsection { margin-bottom: 30px; }
-        .portfolio-subsection h3 { color: #555; font-size: 16px; margin-bottom: 15px; padding-left: 5px; }
-        .tradingview-widget { width: 100%; height: 46px; margin-bottom: 8px; border-radius: 8px; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -90,33 +85,6 @@
             <button class="write-btn" onclick="showWriteForm('investment')">✏️ 새 투자 글 쓰기</button>
             <div id="investmentListContainer"><div class="loading">불러오는 중...</div></div>
         </div>
-        <div id="portfolioSection" class="portfolio-section">
-            <h2>📊 포트폴리오</h2>
-            <div class="portfolio-subsection">
-                <h3>🪙 코인</h3>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=BINANCE:BTCUSDT&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=BINANCE:ETHUSDT&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=BINANCE:SOLUSDT&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-            </div>
-            <div class="portfolio-subsection">
-                <h3>🏆 우량주</h3>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=AAPL&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=MSFT&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=GOOGL&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=AMZN&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=NVDA&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=TSLA&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=META&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=BRK.B&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=JPM&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=V&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-            </div>
-            <div class="portfolio-subsection">
-                <h3>⭐ 관심 종목</h3>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=NASDAQ:ABTC&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-                <div class="tradingview-widget"><iframe src="https://www.tradingview-widget.com/embed-widget/single-quote/?symbol=NASDAQ:RXRX&width=100%25&colorTheme=light&isTransparent=true&locale=kr" style="width:100%;height:46px;border:none;"></iframe></div>
-            </div>
-        </div>
         <div id="diaryDetail" class="diary-detail">
             <button class="back-button" onclick="showList()">← 목록으로</button>
             <button class="delete-button" onclick="deletePost()">🗑️ 삭제</button>
@@ -143,9 +111,9 @@
         function showWriteForm(type) { const password = prompt('비밀번호를 입력하세요:'); if (password !== ADMIN_PASSWORD) { alert('비밀번호가 틀렸습니다! 🚫'); return; } const existingForm = document.getElementById('writeForm'); if (existingForm) { existingForm.remove(); } const titleText = type === 'diary' ? '일기' : '투자 글'; let categorySelect = ''; if (type === 'investment') { categorySelect = '<div class="form-group"><label>카테고리</label><select id="postCategory"><option value="stock">주식</option><option value="coin">코인</option></select></div>'; } const formHtml = '<div class="write-form active" id="writeForm"><h3>✏️ 새 ' + titleText + ' 작성</h3><div class="form-group"><label>제목</label><input type="text" id="postTitle" placeholder="제목을 입력하세요"></div>' + categorySelect + '<div class="form-group"><label>내용</label><textarea id="postContent" placeholder="내용을 작성하세요..."></textarea></div><div class="form-buttons"><button class="submit-btn" onclick="savePost(\'' + type + '\')">저장하기</button><button class="cancel-btn" onclick="hideWriteForm()">취소</button></div></div>'; const containerId = type === 'diary' ? 'diaryListContainer' : 'investmentListContainer'; document.getElementById(containerId).insertAdjacentHTML('beforebegin', formHtml); }
         function hideWriteForm() { const form = document.getElementById('writeForm'); if (form) form.remove(); }
         async function savePost(type) { const title = document.getElementById('postTitle').value; const content = document.getElementById('postContent').value; let category = null; if (type === 'investment') { category = document.getElementById('postCategory').value; } if (!title.trim()) { alert('제목을 입력해주세요!'); return; } if (!content.trim()) { alert('내용을 입력해주세요!'); return; } const today = new Date(); const dateStr = today.toISOString().split('T')[0]; const newPost = { title: title, date: dateStr, content: content, createdAt: firebase.firestore.FieldValue.serverTimestamp() }; if (type === 'investment') { newPost.category = category; } try { const collectionName = type === 'diary' ? 'diaries' : 'investments'; await db.collection(collectionName).add(newPost); hideWriteForm(); alert('저장되었습니다! 🎉'); if (type === 'diary') { loadDiaries(); } else { loadInvestments(); } } catch (error) { alert('저장 중 오류가 발생했습니다: ' + error.message); } }
-        function showPost(type, index) { const post = type === 'diary' ? diaries[index] : investments[index]; currentPost = post; currentPostType = type; document.getElementById('detailDate').textContent = formatDate(post.date); document.getElementById('detailTitle').textContent = post.title; document.getElementById('detailContent').textContent = post.content; document.getElementById('profileSection').classList.add('hidden'); document.getElementById('diarySection').classList.add('hidden'); document.getElementById('investmentSection').classList.add('hidden'); document.getElementById('portfolioSection').classList.add('hidden'); document.getElementById('diaryDetail').classList.add('active'); }
+        function showPost(type, index) { const post = type === 'diary' ? diaries[index] : investments[index]; currentPost = post; currentPostType = type; document.getElementById('detailDate').textContent = formatDate(post.date); document.getElementById('detailTitle').textContent = post.title; document.getElementById('detailContent').textContent = post.content; document.getElementById('profileSection').classList.add('hidden'); document.getElementById('diarySection').classList.add('hidden'); document.getElementById('investmentSection').classList.add('hidden'); document.getElementById('diaryDetail').classList.add('active'); }
         async function deletePost() { const password = prompt('삭제하려면 비밀번호를 입력하세요:'); if (password !== ADMIN_PASSWORD) { alert('비밀번호가 틀렸습니다! 🚫'); return; } const confirmDelete = confirm('정말 삭제하시겠습니까?'); if (!confirmDelete) { return; } try { const collectionName = currentPostType === 'diary' ? 'diaries' : 'investments'; await db.collection(collectionName).doc(currentPost.id).delete(); alert('삭제되었습니다! 🗑️'); showList(); if (currentPostType === 'diary') { loadDiaries(); } else { loadInvestments(); } } catch (error) { alert('삭제 중 오류가 발생했습니다: ' + error.message); } }
-        function showList() { document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('diarySection').classList.remove('hidden'); document.getElementById('investmentSection').classList.remove('hidden'); document.getElementById('portfolioSection').classList.remove('hidden'); document.getElementById('diaryDetail').classList.remove('active'); currentPost = null; currentPostType = null; }
+        function showList() { document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('diarySection').classList.remove('hidden'); document.getElementById('investmentSection').classList.remove('hidden'); document.getElementById('diaryDetail').classList.remove('active'); currentPost = null; currentPostType = null; }
     </script>
 </body>
 </html>
