@@ -327,6 +327,7 @@
             color: #444;
             line-height: 1.8;
             font-size: 16px;
+            white-space: pre-wrap;
         }
 
         /* 푸터 */
@@ -414,67 +415,54 @@
         // 비밀번호
         const ADMIN_PASSWORD = 'Dpfsleh105~';
 
-        // Diary data - 저장소에서 불러오기
+        // 일기와 투자 활동 데이터
         let diaries = [];
         let investments = [];
         let investmentFilter = 'all';
 
-        // 페이지 로드 시 모든 글 불러오기
-        window.onload = async function() {
-            await loadAllPosts();
-            renderDiaryList();
-            renderInvestmentList();
-        };
-
-        // 저장소에서 모든 글 불러오기
-        async function loadAllPosts() {
-            try {
-                // 일기 불러오기
-                const diaryResult = await window.storage.list('diary:', true);
-                if (diaryResult && diaryResult.keys) {
-                    const loadPromises = diaryResult.keys.map(async (key) => {
-                        const data = await window.storage.get(key, true);
-                        return data ? JSON.parse(data.value) : null;
-                    });
-                    
-                    const loadedDiaries = await Promise.all(loadPromises);
-                    diaries = loadedDiaries.filter(d => d !== null);
-                    diaries.sort((a, b) => new Date(b.date) - new Date(a.date));
-                }
-
-                // 투자 활동 불러오기
-                const investmentResult = await window.storage.list('investment:', true);
-                if (investmentResult && investmentResult.keys) {
-                    const loadPromises = investmentResult.keys.map(async (key) => {
-                        const data = await window.storage.get(key, true);
-                        return data ? JSON.parse(data.value) : null;
-                    });
-                    
-                    const loadedInvestments = await Promise.all(loadPromises);
-                    investments = loadedInvestments.filter(d => d !== null);
-                    investments.sort((a, b) => new Date(b.date) - new Date(a.date));
-                }
-            } catch (error) {
-                console.log('글을 불러오는 중 오류:', error);
-                // 첫 일기 추가
-                diaries = [{
-                    id: 'diary_1',
-                    title: "First Day of Coding Challenge",
-                    date: "2026-01-17",
-                    content: `Today I started studying coding for the first time.
+        // 기본 일기 (처음 방문할 때 보여줄 내용)
+        const defaultDiary = {
+            id: 'diary_1',
+            title: "First Day of Coding Challenge",
+            date: "2026-01-17",
+            content: `Today I started studying coding for the first time.
 
 To be honest, I still don't understand how it works and coding languages are too difficult and I don't even know what I'm doing right now.
 
 Today, since it's my first time, I'm going to start with something simple.
 
 The coding system told me to try making a website, so I'm going to make one, and I plan to gradually grow this website and make it entirely my own.`
-                }];
-                // 첫 일기 저장
-                await window.storage.set('diary:diary_1', JSON.stringify(diaries[0]), true);
+        };
+
+        // 페이지가 열릴 때 실행
+        window.onload = function() {
+            loadAllPosts();
+            renderDiaryList();
+            renderInvestmentList();
+        };
+
+        // 저장된 글 불러오기
+        function loadAllPosts() {
+            // 일기 불러오기
+            const savedDiaries = localStorage.getItem('mysite_diaries');
+            if (savedDiaries) {
+                diaries = JSON.parse(savedDiaries);
+            } else {
+                // 저장된 게 없으면 기본 일기 넣기
+                diaries = [defaultDiary];
+                localStorage.setItem('mysite_diaries', JSON.stringify(diaries));
+            }
+
+            // 투자 활동 불러오기
+            const savedInvestments = localStorage.getItem('mysite_investments');
+            if (savedInvestments) {
+                investments = JSON.parse(savedInvestments);
+            } else {
+                investments = [];
             }
         }
 
-        // 일기 목록 렌더링
+        // 일기 목록 보여주기
         function renderDiaryList() {
             const container = document.getElementById('diaryListContainer');
             container.innerHTML = '';
@@ -499,7 +487,7 @@ The coding system told me to try making a website, so I'm going to make one, and
             });
         }
 
-        // 투자 활동 목록 렌더링
+        // 투자 활동 목록 보여주기
         function renderInvestmentList() {
             const container = document.getElementById('investmentListContainer');
             container.innerHTML = '';
@@ -534,7 +522,7 @@ The coding system told me to try making a website, so I'm going to make one, and
             });
         }
 
-        // 날짜 포맷팅
+        // 날짜를 예쁘게 바꾸기
         function formatDate(dateStr) {
             const date = new Date(dateStr);
             const months = ['January', 'February', 'March', 'April', 'May', 'June', 
@@ -546,7 +534,7 @@ The coding system told me to try making a website, so I'm going to make one, and
         function filterInvestment(category) {
             investmentFilter = category;
             
-            // 버튼 활성화 상태 변경
+            // 버튼 색깔 바꾸기
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -555,13 +543,19 @@ The coding system told me to try making a website, so I'm going to make one, and
             renderInvestmentList();
         }
 
-        // 작성 폼 표시 (비밀번호 확인)
+        // 글쓰기 창 보여주기 (비밀번호 확인)
         function showWriteForm(type) {
             const password = prompt('비밀번호를 입력하세요:');
             
             if (password !== ADMIN_PASSWORD) {
                 alert('비밀번호가 틀렸습니다! 🚫');
                 return;
+            }
+
+            // 이미 폼이 열려있으면 닫기
+            const existingForm = document.getElementById('writeForm');
+            if (existingForm) {
+                existingForm.remove();
             }
 
             const titleText = type === 'diary' ? '일기' : '투자 활동';
@@ -603,14 +597,14 @@ The coding system told me to try making a website, so I'm going to make one, and
             container.insertAdjacentHTML('beforebegin', formHtml);
         }
 
-        // 작성 폼 숨기기
+        // 글쓰기 창 닫기
         function hideWriteForm() {
             const form = document.getElementById('writeForm');
             if (form) form.remove();
         }
 
-        // 글 저장
-        async function savePost(type) {
+        // 글 저장하기
+        function savePost(type) {
             const title = document.getElementById('postTitle').value;
             const content = document.getElementById('postContent').value;
             
@@ -629,12 +623,12 @@ The coding system told me to try making a website, so I'm going to make one, and
                 return;
             }
 
-            // 오늘 날짜와 고유 ID
+            // 오늘 날짜
             const today = new Date();
             const dateStr = today.toISOString().split('T')[0];
             const postId = type + '_' + Date.now();
 
-            // 새 글 객체
+            // 새 글 만들기
             const newPost = {
                 id: postId,
                 title: title,
@@ -646,28 +640,22 @@ The coding system told me to try making a website, so I'm going to make one, and
                 newPost.category = category;
             }
 
-            try {
-                // 저장소에 저장
-                await window.storage.set(type + ':' + postId, JSON.stringify(newPost), true);
-                
-                // 배열에 추가
-                if (type === 'diary') {
-                    diaries.unshift(newPost);
-                    renderDiaryList();
-                } else {
-                    investments.unshift(newPost);
-                    renderInvestmentList();
-                }
-
-                hideWriteForm();
-                
-                alert('저장되었습니다! 🎉');
-            } catch (error) {
-                alert('저장 중 오류가 발생했습니다: ' + error.message);
+            // 저장하기
+            if (type === 'diary') {
+                diaries.unshift(newPost);  // 맨 앞에 추가
+                localStorage.setItem('mysite_diaries', JSON.stringify(diaries));
+                renderDiaryList();
+            } else {
+                investments.unshift(newPost);  // 맨 앞에 추가
+                localStorage.setItem('mysite_investments', JSON.stringify(investments));
+                renderInvestmentList();
             }
+
+            hideWriteForm();
+            alert('저장되었습니다! 🎉');
         }
 
-        // 글 상세 보기
+        // 글 자세히 보기
         function showPost(type, index) {
             const post = type === 'diary' ? diaries[index] : investments[index];
             document.getElementById('detailDate').textContent = formatDate(post.date);
