@@ -133,6 +133,156 @@
             font-size: 20px;
         }
 
+        /* 새 일기 작성 버튼 */
+        .write-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-bottom: 25px;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .write-btn:hover {
+            background: #555;
+        }
+
+        /* 카테고리 필터 (투자 활동용) */
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            background: #f0f0f0;
+            border: 2px solid #e0e0e0;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .category-btn:hover {
+            background: #e8e8e8;
+        }
+
+        .category-btn.active {
+            background: #333;
+            color: white;
+            border-color: #333;
+        }
+
+        /* 카테고리 뱃지 */
+        .category-badge {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        .category-badge.stock {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .category-badge.coin {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        /* 일기 작성 폼 */
+        .write-form {
+            background: #fafafa;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .write-form.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .write-form h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .submit-btn {
+            background: #333;
+            color: white;
+        }
+
+        .submit-btn:hover {
+            background: #555;
+        }
+
+        .cancel-btn {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .cancel-btn:hover {
+            background: #d0d0d0;
+        }
+
         /* 일기 상세 페이지 */
         .diary-detail {
             display: none;
@@ -217,22 +367,38 @@
             </div>
         </div>
 
-        <!-- 일기 목록 섹션 -->
-        <div id="diaryList" class="diary-section">
-            <h2>📝 Diary</h2>
+        <!-- 일기 섹션 -->
+        <div id="diarySection" class="diary-section">
+            <h2>📝 일기</h2>
 
-            <div class="diary-item" onclick="showDiary(0)">
-                <div class="diary-item-left">
-                    <div class="diary-title">First Day of Coding Challenge</div>
-                    <div class="diary-date">January 17, 2026</div>
-                </div>
-                <div class="diary-arrow">→</div>
+            <!-- 새 일기 작성 버튼 -->
+            <button class="write-btn" onclick="showWriteForm('diary')">✏️ 새 일기 쓰기</button>
+
+            <!-- 일기 목록 -->
+            <div id="diaryListContainer"></div>
+        </div>
+
+        <!-- 투자 활동 섹션 -->
+        <div id="investmentSection" class="diary-section">
+            <h2>💰 투자 활동</h2>
+
+            <!-- 카테고리 필터 -->
+            <div class="category-filter">
+                <button class="category-btn active" onclick="filterInvestment('all')">전체</button>
+                <button class="category-btn" onclick="filterInvestment('stock')">주식</button>
+                <button class="category-btn" onclick="filterInvestment('coin')">코인</button>
             </div>
+
+            <!-- 새 투자 활동 작성 버튼 -->
+            <button class="write-btn" onclick="showWriteForm('investment')">✏️ 새 투자 활동 쓰기</button>
+
+            <!-- 투자 활동 목록 -->
+            <div id="investmentListContainer"></div>
         </div>
 
         <!-- 일기 상세 페이지 -->
         <div id="diaryDetail" class="diary-detail">
-            <button class="back-button" onclick="showList()">← Back to List</button>
+            <button class="back-button" onclick="showList()">← 목록으로</button>
             <div class="detail-date" id="detailDate"></div>
             <div class="detail-title" id="detailTitle"></div>
             <div class="detail-content" id="detailContent"></div>
@@ -245,37 +411,280 @@
     </div>
 
     <script>
-        // Diary data
-        const diaries = [
-            {
-                title: "First Day of Coding Challenge",
-                date: "January 17, 2026",
-                content: `Today I started studying coding for the first time.
+        // 비밀번호
+        const ADMIN_PASSWORD = 'Dpfsleh105~';
+
+        // Diary data - 저장소에서 불러오기
+        let diaries = [];
+        let investments = [];
+        let investmentFilter = 'all';
+
+        // 페이지 로드 시 모든 글 불러오기
+        window.onload = async function() {
+            await loadAllPosts();
+            renderDiaryList();
+            renderInvestmentList();
+        };
+
+        // 저장소에서 모든 글 불러오기
+        async function loadAllPosts() {
+            try {
+                // 일기 불러오기
+                const diaryResult = await window.storage.list('diary:', true);
+                if (diaryResult && diaryResult.keys) {
+                    const loadPromises = diaryResult.keys.map(async (key) => {
+                        const data = await window.storage.get(key, true);
+                        return data ? JSON.parse(data.value) : null;
+                    });
+                    
+                    const loadedDiaries = await Promise.all(loadPromises);
+                    diaries = loadedDiaries.filter(d => d !== null);
+                    diaries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                }
+
+                // 투자 활동 불러오기
+                const investmentResult = await window.storage.list('investment:', true);
+                if (investmentResult && investmentResult.keys) {
+                    const loadPromises = investmentResult.keys.map(async (key) => {
+                        const data = await window.storage.get(key, true);
+                        return data ? JSON.parse(data.value) : null;
+                    });
+                    
+                    const loadedInvestments = await Promise.all(loadPromises);
+                    investments = loadedInvestments.filter(d => d !== null);
+                    investments.sort((a, b) => new Date(b.date) - new Date(a.date));
+                }
+            } catch (error) {
+                console.log('글을 불러오는 중 오류:', error);
+                // 첫 일기 추가
+                diaries = [{
+                    id: 'diary_1',
+                    title: "First Day of Coding Challenge",
+                    date: "2026-01-17",
+                    content: `Today I started studying coding for the first time.
 
 To be honest, I still don't understand how it works and coding languages are too difficult and I don't even know what I'm doing right now.
 
 Today, since it's my first time, I'm going to start with something simple.
 
 The coding system told me to try making a website, so I'm going to make one, and I plan to gradually grow this website and make it entirely my own.`
+                }];
+                // 첫 일기 저장
+                await window.storage.set('diary:diary_1', JSON.stringify(diaries[0]), true);
             }
-        ];
+        }
 
-        // Show diary detail
-        function showDiary(index) {
-            const diary = diaries[index];
-            document.getElementById('detailDate').textContent = diary.date;
-            document.getElementById('detailTitle').textContent = diary.title;
-            document.getElementById('detailContent').textContent = diary.content;
+        // 일기 목록 렌더링
+        function renderDiaryList() {
+            const container = document.getElementById('diaryListContainer');
+            container.innerHTML = '';
+
+            if (diaries.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 40px 0;">아직 작성된 일기가 없습니다.</p>';
+                return;
+            }
+
+            diaries.forEach((diary, index) => {
+                const dateFormatted = formatDate(diary.date);
+
+                container.innerHTML += `
+                    <div class="diary-item" onclick="showPost('diary', ${index})">
+                        <div class="diary-item-left">
+                            <div class="diary-title">${diary.title}</div>
+                            <div class="diary-date">${dateFormatted}</div>
+                        </div>
+                        <div class="diary-arrow">→</div>
+                    </div>
+                `;
+            });
+        }
+
+        // 투자 활동 목록 렌더링
+        function renderInvestmentList() {
+            const container = document.getElementById('investmentListContainer');
+            container.innerHTML = '';
+
+            const filteredInvestments = investmentFilter === 'all' 
+                ? investments 
+                : investments.filter(i => i.category === investmentFilter);
+
+            if (filteredInvestments.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 40px 0;">아직 작성된 투자 활동이 없습니다.</p>';
+                return;
+            }
+
+            filteredInvestments.forEach((investment, index) => {
+                const realIndex = investments.indexOf(investment);
+                const dateFormatted = formatDate(investment.date);
+                const categoryText = investment.category === 'stock' ? '주식' : '코인';
+                const categoryClass = investment.category;
+
+                container.innerHTML += `
+                    <div class="diary-item" onclick="showPost('investment', ${realIndex})">
+                        <div class="diary-item-left">
+                            <div class="diary-title">
+                                ${investment.title}
+                                <span class="category-badge ${categoryClass}">${categoryText}</span>
+                            </div>
+                            <div class="diary-date">${dateFormatted}</div>
+                        </div>
+                        <div class="diary-arrow">→</div>
+                    </div>
+                `;
+            });
+        }
+
+        // 날짜 포맷팅
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+            return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+        }
+
+        // 투자 활동 필터
+        function filterInvestment(category) {
+            investmentFilter = category;
+            
+            // 버튼 활성화 상태 변경
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            renderInvestmentList();
+        }
+
+        // 작성 폼 표시 (비밀번호 확인)
+        function showWriteForm(type) {
+            const password = prompt('비밀번호를 입력하세요:');
+            
+            if (password !== ADMIN_PASSWORD) {
+                alert('비밀번호가 틀렸습니다! 🚫');
+                return;
+            }
+
+            const titleText = type === 'diary' ? '일기' : '투자 활동';
+            
+            let categorySelect = '';
+            if (type === 'investment') {
+                categorySelect = `
+                    <div class="form-group">
+                        <label>카테고리</label>
+                        <select id="postCategory">
+                            <option value="stock">주식</option>
+                            <option value="coin">코인</option>
+                        </select>
+                    </div>
+                `;
+            }
+            
+            const formHtml = `
+                <div class="write-form active" id="writeForm">
+                    <h3>✏️ 새 ${titleText} 작성</h3>
+                    <div class="form-group">
+                        <label>제목</label>
+                        <input type="text" id="postTitle" placeholder="제목을 입력하세요">
+                    </div>
+                    ${categorySelect}
+                    <div class="form-group">
+                        <label>내용</label>
+                        <textarea id="postContent" placeholder="내용을 작성하세요..."></textarea>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="submit-btn" onclick="savePost('${type}')">저장하기</button>
+                        <button class="cancel-btn" onclick="hideWriteForm()">취소</button>
+                    </div>
+                </div>
+            `;
+
+            const containerId = type === 'diary' ? 'diaryListContainer' : 'investmentListContainer';
+            const container = document.getElementById(containerId);
+            container.insertAdjacentHTML('beforebegin', formHtml);
+        }
+
+        // 작성 폼 숨기기
+        function hideWriteForm() {
+            const form = document.getElementById('writeForm');
+            if (form) form.remove();
+        }
+
+        // 글 저장
+        async function savePost(type) {
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+            
+            let category = null;
+            if (type === 'investment') {
+                category = document.getElementById('postCategory').value;
+            }
+
+            if (!title.trim()) {
+                alert('제목을 입력해주세요!');
+                return;
+            }
+
+            if (!content.trim()) {
+                alert('내용을 입력해주세요!');
+                return;
+            }
+
+            // 오늘 날짜와 고유 ID
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            const postId = type + '_' + Date.now();
+
+            // 새 글 객체
+            const newPost = {
+                id: postId,
+                title: title,
+                date: dateStr,
+                content: content
+            };
+
+            if (type === 'investment') {
+                newPost.category = category;
+            }
+
+            try {
+                // 저장소에 저장
+                await window.storage.set(type + ':' + postId, JSON.stringify(newPost), true);
+                
+                // 배열에 추가
+                if (type === 'diary') {
+                    diaries.unshift(newPost);
+                    renderDiaryList();
+                } else {
+                    investments.unshift(newPost);
+                    renderInvestmentList();
+                }
+
+                hideWriteForm();
+                
+                alert('저장되었습니다! 🎉');
+            } catch (error) {
+                alert('저장 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // 글 상세 보기
+        function showPost(type, index) {
+            const post = type === 'diary' ? diaries[index] : investments[index];
+            document.getElementById('detailDate').textContent = formatDate(post.date);
+            document.getElementById('detailTitle').textContent = post.title;
+            document.getElementById('detailContent').textContent = post.content;
             
             document.getElementById('profileSection').classList.add('hidden');
-            document.getElementById('diaryList').classList.add('hidden');
+            document.getElementById('diarySection').classList.add('hidden');
+            document.getElementById('investmentSection').classList.add('hidden');
             document.getElementById('diaryDetail').classList.add('active');
         }
 
-        // Return to list
+        // 목록으로 돌아가기
         function showList() {
             document.getElementById('profileSection').classList.remove('hidden');
-            document.getElementById('diaryList').classList.remove('hidden');
+            document.getElementById('diarySection').classList.remove('hidden');
+            document.getElementById('investmentSection').classList.remove('hidden');
             document.getElementById('diaryDetail').classList.remove('active');
         }
     </script>
