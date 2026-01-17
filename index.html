@@ -330,6 +330,13 @@
             white-space: pre-wrap;
         }
 
+        /* 로딩 표시 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
         /* 푸터 */
         .footer {
             background: #fafafa;
@@ -376,7 +383,9 @@
             <button class="write-btn" onclick="showWriteForm('diary')">✏️ 새 일기 쓰기</button>
 
             <!-- 일기 목록 -->
-            <div id="diaryListContainer"></div>
+            <div id="diaryListContainer">
+                <div class="loading">불러오는 중...</div>
+            </div>
         </div>
 
         <!-- 투자 활동 섹션 -->
@@ -394,7 +403,9 @@
             <button class="write-btn" onclick="showWriteForm('investment')">✏️ 새 투자 활동 쓰기</button>
 
             <!-- 투자 활동 목록 -->
-            <div id="investmentListContainer"></div>
+            <div id="investmentListContainer">
+                <div class="loading">불러오는 중...</div>
+            </div>
         </div>
 
         <!-- 일기 상세 페이지 -->
@@ -411,54 +422,69 @@
         </div>
     </div>
 
+    <!-- Firebase 연결 -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <script>
+        // Firebase 설정 (민수님 정보)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqFDAe_mY7T8FWL-9dzjLd3yHgG_rZE6Q",
+            authDomain: "my-website-minsu.firebaseapp.com",
+            projectId: "my-website-minsu",
+            storageBucket: "my-website-minsu.firebasestorage.app",
+            messagingSenderId: "766576447022",
+            appId: "1:766576447022:web:4b03228299fcf0f39f99bf",
+            measurementId: "G-ND5YSMW9VH"
+        };
+
+        // Firebase 시작
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         // 비밀번호
         const ADMIN_PASSWORD = 'Dpfsleh105~';
 
-        // 일기와 투자 활동 데이터
+        // 데이터 저장용
         let diaries = [];
         let investments = [];
         let investmentFilter = 'all';
 
-        // 기본 일기 (처음 방문할 때 보여줄 내용)
-        const defaultDiary = {
-            id: 'diary_1',
-            title: "First Day of Coding Challenge",
-            date: "2026-01-17",
-            content: `Today I started studying coding for the first time.
-
-To be honest, I still don't understand how it works and coding languages are too difficult and I don't even know what I'm doing right now.
-
-Today, since it's my first time, I'm going to start with something simple.
-
-The coding system told me to try making a website, so I'm going to make one, and I plan to gradually grow this website and make it entirely my own.`
-        };
-
-        // 페이지가 열릴 때 실행
+        // 페이지 열릴 때 실행
         window.onload = function() {
-            loadAllPosts();
-            renderDiaryList();
-            renderInvestmentList();
+            loadDiaries();
+            loadInvestments();
         };
 
-        // 저장된 글 불러오기
-        function loadAllPosts() {
-            // 일기 불러오기
-            const savedDiaries = localStorage.getItem('mysite_diaries');
-            if (savedDiaries) {
-                diaries = JSON.parse(savedDiaries);
-            } else {
-                // 저장된 게 없으면 기본 일기 넣기
-                diaries = [defaultDiary];
-                localStorage.setItem('mysite_diaries', JSON.stringify(diaries));
+        // 일기 불러오기
+        async function loadDiaries() {
+            try {
+                const snapshot = await db.collection('diaries').orderBy('date', 'desc').get();
+                diaries = [];
+                snapshot.forEach(doc => {
+                    diaries.push({ id: doc.id, ...doc.data() });
+                });
+                renderDiaryList();
+            } catch (error) {
+                console.log('일기 불러오기 오류:', error);
+                document.getElementById('diaryListContainer').innerHTML = 
+                    '<p style="color: #999; text-align: center; padding: 40px 0;">일기를 불러오지 못했습니다.</p>';
             }
+        }
 
-            // 투자 활동 불러오기
-            const savedInvestments = localStorage.getItem('mysite_investments');
-            if (savedInvestments) {
-                investments = JSON.parse(savedInvestments);
-            } else {
+        // 투자 활동 불러오기
+        async function loadInvestments() {
+            try {
+                const snapshot = await db.collection('investments').orderBy('date', 'desc').get();
                 investments = [];
+                snapshot.forEach(doc => {
+                    investments.push({ id: doc.id, ...doc.data() });
+                });
+                renderInvestmentList();
+            } catch (error) {
+                console.log('투자 활동 불러오기 오류:', error);
+                document.getElementById('investmentListContainer').innerHTML = 
+                    '<p style="color: #999; text-align: center; padding: 40px 0;">투자 활동을 불러오지 못했습니다.</p>';
             }
         }
 
@@ -522,7 +548,7 @@ The coding system told me to try making a website, so I'm going to make one, and
             });
         }
 
-        // 날짜를 예쁘게 바꾸기
+        // 날짜 예쁘게 바꾸기
         function formatDate(dateStr) {
             const date = new Date(dateStr);
             const months = ['January', 'February', 'March', 'April', 'May', 'June', 
@@ -534,7 +560,6 @@ The coding system told me to try making a website, so I'm going to make one, and
         function filterInvestment(category) {
             investmentFilter = category;
             
-            // 버튼 색깔 바꾸기
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -543,7 +568,7 @@ The coding system told me to try making a website, so I'm going to make one, and
             renderInvestmentList();
         }
 
-        // 글쓰기 창 보여주기 (비밀번호 확인)
+        // 글쓰기 창 보여주기
         function showWriteForm(type) {
             const password = prompt('비밀번호를 입력하세요:');
             
@@ -552,7 +577,6 @@ The coding system told me to try making a website, so I'm going to make one, and
                 return;
             }
 
-            // 이미 폼이 열려있으면 닫기
             const existingForm = document.getElementById('writeForm');
             if (existingForm) {
                 existingForm.remove();
@@ -604,7 +628,7 @@ The coding system told me to try making a website, so I'm going to make one, and
         }
 
         // 글 저장하기
-        function savePost(type) {
+        async function savePost(type) {
             const title = document.getElementById('postTitle').value;
             const content = document.getElementById('postContent').value;
             
@@ -626,33 +650,36 @@ The coding system told me to try making a website, so I'm going to make one, and
             // 오늘 날짜
             const today = new Date();
             const dateStr = today.toISOString().split('T')[0];
-            const postId = type + '_' + Date.now();
 
             // 새 글 만들기
             const newPost = {
-                id: postId,
                 title: title,
                 date: dateStr,
-                content: content
+                content: content,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             if (type === 'investment') {
                 newPost.category = category;
             }
 
-            // 저장하기
-            if (type === 'diary') {
-                diaries.unshift(newPost);  // 맨 앞에 추가
-                localStorage.setItem('mysite_diaries', JSON.stringify(diaries));
-                renderDiaryList();
-            } else {
-                investments.unshift(newPost);  // 맨 앞에 추가
-                localStorage.setItem('mysite_investments', JSON.stringify(investments));
-                renderInvestmentList();
-            }
+            try {
+                // Firebase에 저장
+                const collectionName = type === 'diary' ? 'diaries' : 'investments';
+                await db.collection(collectionName).add(newPost);
 
-            hideWriteForm();
-            alert('저장되었습니다! 🎉');
+                hideWriteForm();
+                alert('저장되었습니다! 🎉');
+
+                // 목록 다시 불러오기
+                if (type === 'diary') {
+                    loadDiaries();
+                } else {
+                    loadInvestments();
+                }
+            } catch (error) {
+                alert('저장 중 오류가 발생했습니다: ' + error.message);
+            }
         }
 
         // 글 자세히 보기
