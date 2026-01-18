@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulette - Tony An</title>
+    <style>
+        /* ===== 1. CSS 변수 설정 ===== */
+        /* 여기서 색상들을 한번에 관리해요. 나중에 색 바꾸고 싶으면 여기만 수정하면 됨 */
+        :root {
+            --bg-primary: #f5f5f5;      /* 배경색 */
+            --bg-secondary: white;       /* 카드 배경 */
+            --text-primary: #222;        /* 주요 글자색 */
+            --text-secondary: #666;      /* 보조 글자색 */
+            --border-color: #e0e0e0;     /* 테두리색 */
+            --shadow: rgba(0,0,0,0.08);  /* 그림자 */
+        }
+
+        /* 다크모드일 때 색상 */
+        [data-theme="dark"] {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --border-color: #404040;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
+        /* ===== 2. 기본 스타일 초기화 ===== */
+        /* 모든 요소의 기본 여백 제거하고 box-sizing 통일 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== 3. body 스타일 ===== */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-primary); 
+            min-height: 100vh;  /* 최소 높이를 화면 전체로 */
+            transition: background 0.3s, color 0.3s;  /* 다크모드 전환시 부드럽게 */
+        }
+        
+        /* ===== 4. 상단 네비게이션 바 ===== */
+        .top-bar {
+            background: #1a1a1a;
+            padding: 12px 24px;
+            display: flex;                    /* 가로 배치 */
+            justify-content: space-between;   /* 양쪽 끝으로 배치 */
+            align-items: center;              /* 세로 중앙 정렬 */
+            position: sticky;                 /* 스크롤해도 상단 고정 */
+            top: 0;
+            z-index: 100;                     /* 다른 요소 위에 표시 */
+        }
+
+        .left-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;  /* 요소 사이 간격 */
+        }
+        
+        .social-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        
+        .x-logo {
+            width: 24px;
+            height: 24px;
+            fill: white;  /* SVG 아이콘 색상 */
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 5px;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .visitor-count {
+            color: white;
+            font-size: 14px;
+        }
+        
+        /* ===== 5. 메인 콘텐츠 영역 ===== */
+        .main-content {
+            padding: 40px 20px;
+            max-width: 600px;       /* 최대 너비 제한 */
+            margin: 0 auto;         /* 가운데 정렬 */
+        }
+
+        .page-title {
+            font-size: 28px;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* ===== 6. 룰렛 컨테이너 ===== */
+        .roulette-container {
+            position: relative;     /* 자식 요소 절대 위치의 기준점 */
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 30px;    /* 가운데 정렬 + 아래 여백 */
+        }
+
+        /* ===== 7. 룰렛 원판 (canvas) ===== */
+        #rouletteCanvas {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;     /* 원형으로 */
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        /* ===== 8. 화살표 (▼) ===== */
+        .arrow {
+            position: absolute;     /* 부모(roulette-container) 기준 위치 */
+            top: -15px;             /* 위로 삐져나오게 */
+            left: 50%;              /* 가로 중앙 */
+            transform: translateX(-50%);  /* 정확한 중앙 정렬 */
+            font-size: 30px;
+            color: #e74c3c;         /* 빨간색 화살표 */
+            z-index: 10;            /* 룰렛 위에 표시 */
+        }
+
+        /* ===== 9. 결과 표시 영역 ===== */
+        .result {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+            min-height: 36px;       /* 결과 없어도 높이 유지 */
+        }
+
+        /* ===== 10. 입력 영역 카드 ===== */
+        .input-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .input-title {
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+
+        /* ===== 11. 항목 입력 컨테이너 ===== */
+        .items-container {
+            display: flex;
+            flex-direction: column;  /* 세로로 쌓기 */
+            gap: 10px;               /* 항목 사이 간격 */
+            margin-bottom: 20px;
+        }
+
+        /* ===== 12. 각 항목 행 ===== */
+        .item-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* 항목 번호 */
+        .item-number {
+            width: 30px;
+            height: 30px;
+            background: #333;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* 텍스트 입력창 */
+        .item-row input {
+            flex: 1;                /* 남은 공간 다 차지 */
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .item-row input:focus {
+            outline: none;
+            border-color: #333;
+        }
+
+        /* 삭제 버튼 (X) */
+        .delete-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* ===== 13. 버튼들 ===== */
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);  /* 살짝 커지는 효과 */
+        }
+
+        .btn-add {
+            background: #333;
+            color: white;
+        }
+
+        .btn-spin {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* ===== 14. 반응형 (모바일) ===== */
+        @media (max-width: 400px) {
+            .roulette-container {
+                width: 250px;
+                height: 250px;
+            }
+            #rouletteCanvas {
+                width: 250px;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== 상단 네비게이션 바 ===== -->
+    <div class="top-bar">
+        <div class="left-section">
+            <!-- 다크모드 토글 버튼 -->
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+            
+            <!-- GitHub 링크 -->
+            <a href="https://github.com/Minsu-code" target="_blank" class="social-link">
+                <svg class="x-logo" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+            </a>
+            
+            <!-- X(Twitter) 링크 -->
+            <a href="https://x.com/KR_MSU" target="_blank" class="social-link">
+                <svg class="x-logo" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+            </a>
+            
+            <!-- 홈 링크 -->
+            <a href="index.html" class="social-link">
+                <svg class="x-logo" viewBox="0 0 24 24">
+                    <path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/>
+                </svg>
+            </a>
+        </div>
+
+        <a href="project.html" class="nav-link">Project</a>
+
+        <div class="visitor-count">
+            방문자 : <span id="visitorCount">-</span>회
+        </div>
+    </div>
+    
+    <!-- ===== 메인 콘텐츠 ===== -->
+    <div class="main-content">
+        <h1 class="page-title">🎰 룰렛 돌리기</h1>
+
+        <!-- 룰렛 원판 -->
+        <div class="roulette-container">
+            <div class="arrow">▼</div>
+            <!-- canvas: JavaScript로 그림을 그리는 영역 -->
+            <canvas id="rouletteCanvas" width="300" height="300"></canvas>
+        </div>
+
+        <!-- 결과 표시 -->
+        <div class="result" id="result"></div>
+
+        <!-- 항목 입력 영역 -->
+        <div class="input-section">
+            <h3 class="input-title">📝 항목 입력</h3>
+            
+            <!-- 항목들이 들어갈 컨테이너 -->
+            <div class="items-container" id="itemsContainer">
+                <!-- JavaScript가 여기에 항목들을 추가함 -->
+            </div>
+
+            <!-- 버튼들 -->
+            <div class="buttons">
+                <button class="btn btn-add" onclick="addItem()">+ 항목 추가</button>
+                <button class="btn btn-spin" onclick="spinRoulette()">🎰 돌리기!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== JavaScript ===== -->
+    <script>
+        // ===== 1. 변수 선언 =====
+        // let: 값이 바뀔 수 있는 변수
+        // const: 값이 바뀌지 않는 상수
+        
+        let items = ['항목 1', '항목 2', '항목 3', '항목 4'];  // 룰렛 항목들
+        let isSpinning = false;  // 현재 돌아가는 중인지
+        let currentAngle = 0;    // 현재 룰렛 각도
+        
+        // 룰렛 색상 (무지개색)
+        const colors = [
+            '#FF6B6B',  // 빨강
+            '#FF9F43',  // 주황
+            '#FECA57',  // 노랑
+            '#48DBFB',  // 하늘
+            '#1DD1A1',  // 초록
+            '#5F27CD',  // 보라
+            '#FF6B9D',  // 분홍
+            '#00D2D3',  // 청록
+            '#FF8C42',  // 오렌지
+            '#A29BFE',  // 연보라
+            '#FD79A8',  // 핑크
+            '#00B894'   // 민트
+        ];
+
+        // ===== 2. 다크모드 기능 =====
+        function toggleTheme() {
+            // document.body = HTML의 <body> 요소
+            // getAttribute = 속성값 가져오기
+            // setAttribute = 속성값 설정하기
+            
+            const body = document.body;
+            const button = document.querySelector('.theme-toggle');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');  // 다크모드 해제
+                button.textContent = '🌙';
+                localStorage.setItem('theme', 'light');  // 브라우저에 저장
+            } else {
+                body.setAttribute('data-theme', 'dark');  // 다크모드 설정
+                button.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+            drawRoulette();  // 룰렛 다시 그리기
+        }
+
+        function loadTheme() {
+            // localStorage: 브라우저에 데이터 저장하는 공간
+            const savedTheme = localStorage.getItem('theme');
+            const button = document.querySelector('.theme-toggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                button.textContent = '☀️';
+            }
+        }
+
+        // ===== 3. 항목 입력 UI 렌더링 =====
+        function renderItems() {
+            // getElementById: id로 HTML 요소 찾기
+            const container = document.getElementById('itemsContainer');
+            
+            // innerHTML: 요소 안의 HTML 내용
+            // map: 배열의 각 요소를 변환
+            // join: 배열을 문자열로 합치기
+            container.innerHTML = items.map((item, index) => `
+                <div class="item-row">
+                    <span class="item-number">${index + 1}</span>
+                    <input 
+                        type="text" 
+                        value="${item}" 
+                        onchange="updateItem(${index}, this.value)"
+                        placeholder="항목 입력..."
+                    >
+                    <button class="delete-btn" onclick="deleteItem(${index})">✕</button>
+                </div>
+            `).join('');
+            
+            drawRoulette();  // 항목 바뀌면 룰렛도 다시 그리기
+        }
+
+        // ===== 4. 항목 추가 =====
+        function addItem() {
+            // push: 배열 끝에 추가
+            items.push(`항목 ${items.length + 1}`);
+            renderItems();
+        }
+
+        // ===== 5. 항목 수정 =====
+        function updateItem(index, value) {
+            // index: 몇 번째 항목인지 (0부터 시작)
+            // value: 새로운 값
+            items[index] = value;
+            drawRoulette();
+        }
+
+        // ===== 6. 항목 삭제 =====
+        function deleteItem(index) {
+            // 최소 2개는 있어야 룰렛이 의미있음
+            if (items.length <= 2) {
+                alert('최소 2개 항목이 필요해요!');
+                return;
+            }
+            // splice: 배열에서 요소 제거
+            items.splice(index, 1);
+            renderItems();
+        }
+
+        // ===== 7. 룰렛 그리기 (핵심!) =====
+        function drawRoulette() {
+            // canvas 요소 가져오기
+            const canvas = document.getElementById('rouletteCanvas');
+            // getContext('2d'): 2D 그림 그리는 도구 가져오기
+            const ctx = canvas.getContext('2d');
+            
+            const centerX = canvas.width / 2;   // 중심 X좌표
+            const centerY = canvas.height / 2;  // 중심 Y좌표
+            const radius = canvas.width / 2 - 5; // 반지름 (여백 5)
+            
+            // 캔버스 지우기
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 각 항목당 차지하는 각도 (라디안)
+            // 원 한바퀴 = 2π (약 6.28)
+            const sliceAngle = (2 * Math.PI) / items.length;
+            
+            // 각 항목 그리기
+            items.forEach((item, index) => {
+                const startAngle = currentAngle + (index * sliceAngle);
+                const endAngle = startAngle + sliceAngle;
+                
+                // 부채꼴 그리기
+                ctx.beginPath();  // 새 도형 시작
+                ctx.moveTo(centerX, centerY);  // 중심으로 이동
+                // arc: 호(원의 일부) 그리기
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();  // 도형 닫기
+                
+                // 색 채우기
+                ctx.fillStyle = colors[index % colors.length];
+                ctx.fill();
+                
+                // 테두리
+                ctx.strokeStyle = '#222';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 텍스트 그리기
+                ctx.save();  // 현재 상태 저장
+                ctx.translate(centerX, centerY);  // 원점을 중심으로 이동
+                ctx.rotate(startAngle + sliceAngle / 2);  // 칸의 중앙 각도로 회전
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.textAlign = 'center';
+                // 텍스트가 너무 길면 자르기
+                const displayText = item.length > 8 ? item.substring(0, 8) + '..' : item;
+                ctx.fillText(displayText, radius * 0.65, 5);
+                ctx.restore();  // 저장했던 상태로 복원
+            });
+            
+            // 중앙 원
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+            ctx.fillStyle = '#222';
+            ctx.fill();
+        }
+
+        // ===== 8. 룰렛 돌리기 (애니메이션) =====
+        function spinRoulette() {
+            // 이미 돌아가는 중이면 무시
+            if (isSpinning) return;
+            // 항목 없으면 무시
+            if (items.length === 0) return;
+            
+            isSpinning = true;
+            document.getElementById('result').textContent = '';
+            
+            // 랜덤 회전량 (5~10바퀴 + 랜덤 각도)
+            // Math.random(): 0~1 사이 랜덤 숫자
+            const spinAmount = (5 + Math.random() * 5) * 2 * Math.PI;
+            const targetAngle = currentAngle + spinAmount;
+            
+            const startTime = Date.now();  // 시작 시간
+            const duration = 4000;  // 4초 동안 회전
+            
+            // animate: 매 프레임마다 실행되는 함수
+            function animate() {
+                const elapsed = Date.now() - startTime;  // 경과 시간
+                const progress = Math.min(elapsed / duration, 1);  // 0~1 사이 진행도
+                
+                // easeOut: 처음엔 빠르고 나중엔 느리게
+                // 이 공식으로 자연스러운 감속 효과
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                
+                // 현재 각도 계산
+                currentAngle = currentAngle + (targetAngle - currentAngle) * easeOut;
+                
+                drawRoulette();  // 다시 그리기
+                
+                if (progress < 1) {
+                    // requestAnimationFrame: 다음 화면 갱신 때 함수 실행
+                    // 부드러운 애니메이션을 위해 사용
+                    requestAnimationFrame(animate);
+                } else {
+                    // 애니메이션 끝
+                    isSpinning = false;
+                    currentAngle = targetAngle % (2 * Math.PI);  // 각도 정리
+                    showResult();
+                }
+            }
+            
+            animate();  // 애니메이션 시작
+        }
+
+        // ===== 9. 결과 표시 =====
+        function showResult() {
+            // 화살표가 위쪽(12시 방향)에 있으므로
+            // 현재 각도에서 어떤 항목이 위쪽에 있는지 계산
+            
+            const sliceAngle = (2 * Math.PI) / items.length;
+            // 각도 보정 (화살표가 위쪽이므로 -90도 = -π/2)
+            let normalizedAngle = (2 * Math.PI - currentAngle - Math.PI / 2) % (2 * Math.PI);
+            if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
+            
+            // 어떤 항목인지 계산
+            const selectedIndex = Math.floor(normalizedAngle / sliceAngle) % items.length;
+            
+            // 결과 표시
+            document.getElementById('result').textContent = `🎉 ${items[selectedIndex]} 🎉`;
+        }
+
+        // ===== 10. 페이지 로드 시 실행 =====
+        // window.onload: 페이지가 완전히 로드되면 실행
+        window.onload = function() {
+            loadTheme();
+            renderItems();
+        };
+    </script>
+</body>
+</html>
