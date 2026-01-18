@@ -165,12 +165,16 @@
 
         .project-thumbnail {
             width: 100%;
-            height: 180px;
+            height: 100px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
+            font-size: 42px;
+        }
+
+        [data-theme="dark"] .project-thumbnail {
+            background: linear-gradient(135deg, #434a6b 0%, #4a3562 100%);
         }
 
         .project-info {
@@ -334,6 +338,7 @@
         <div class="project-grid">
             <!-- 개인 웹사이트 -->
             <a href="index.html" class="project-card">
+                <div class="project-thumbnail">🌐</div>
                 <div class="project-info">
                     <span class="project-status status-complete">✅ Complete</span>
                     <h3 class="project-title">Personal Website</h3>
@@ -343,6 +348,7 @@
 
             <!-- 오목 게임 -->
             <a href="omok.html" class="project-card">
+                <div class="project-thumbnail">⚫</div>
                 <div class="project-info">
                     <span class="project-status status-complete">✅ Complete</span>
                     <h3 class="project-title">Omok Game</h3>
