@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortune - Tony An</title>
+    <style>
+        :root {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: white;
+            --bg-card: #fafafa;
+            --text-primary: #222;
+            --text-secondary: #666;
+            --text-muted: #888;
+            --border-color: #e0e0e0;
+            --accent-color: #333;
+            --hover-bg: #f0f0f0;
+            --shadow: rgba(0,0,0,0.08);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-card: #2a2a2a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #888;
+            --border-color: #404040;
+            --accent-color: #e0e0e0;
+            --hover-bg: #333;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-primary); 
+            min-height: 100vh; 
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        /* 상단바 */
+        .top-bar {
+            background: #1a1a1a;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .left-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .social-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        
+        .social-link:hover {
+            opacity: 0.8;
+        }
+        
+        .x-logo {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 5px;
+            transition: transform 0.2s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.2);
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 8px 20px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            opacity: 0.7;
+        }
+
+        .visitor-count {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            padding: 30px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 32px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            text-align: center;
+            transition: color 0.3s;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* 탭 메뉴 */
+        .tab-menu {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            box-shadow: 0 2px 10px var(--shadow);
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* 탭 컨텐츠 */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 입력 폼 */
+        .form-card {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 25px;
+            transition: background 0.3s;
+        }
+
+        .form-title {
+            font-size: 18px;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            text-align: center;
+            transition: color 0.3s;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            transition: color 0.3s;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 14px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 운세 결과 */
+        .fortune-result {
+            display: none;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px var(--shadow);
+            transition: background 0.3s;
+        }
+
+        .fortune-result.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fortune-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .fortune-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .fortune-title {
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            transition: color 0.3s;
+        }
+
+        .fortune-date {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .fortune-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: var(--bg-card);
+            border-radius: 15px;
+            transition: background 0.3s;
+        }
+
+        .fortune-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            transition: color 0.3s;
+        }
+
+        .fortune-section-content {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            transition: color 0.3s;
+        }
+
+        .luck-meter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .luck-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .luck-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+
+        .luck-fill.high { background: linear-gradient(90deg, #4caf50, #8bc34a); }
+        .luck-fill.medium { background: linear-gradient(90deg, #ff9800, #ffc107); }
+        .luck-fill.low { background: linear-gradient(90deg, #f44336, #e91e63); }
+
+        .luck-percent {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 45px;
+        }
+
+        /* 띠별/별자리 그리드 */
+        .zodiac-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .zodiac-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px var(--shadow);
+            transition: all 0.3s;
+        }
+
+        .zodiac-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px var(--shadow);
+        }
+
+        .zodiac-card.selected {
+            border: 2px solid #667eea;
+        }
+
+        .zodiac-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .zodiac-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            transition: color 0.3s;
+        }
+
+        .zodiac-years {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .zodiac-dates {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* 반응형 */
+        @media (max-width: 600px) {
+            .page-title { font-size: 26px; }
+            .form-card { padding: 20px; }
+            .tab-btn { padding: 10px 18px; font-size: 14px; }
+            .zodiac-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .zodiac-card { padding: 15px 10px; }
+            .zodiac-icon { font-size: 28px; }
+            .zodiac-name { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 상단바 -->
+    <div class="top-bar">
+        <div class="left-section">
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+            <a href="https://github.com/Minsu-code" target="_blank" class="social-link" title="GitHub">
+                <svg class="x-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+            </a>
+            <a href="https://x.com/KR_MSU" target="_blank" class="social-link" title="X (Twitter)">
+                <svg class="x-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+            </a>
+            <a href="index.html" class="social-link" title="Home">
+                <svg class="x-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/>
+                </svg>
+            </a>
+        </div>
+
+        <a href="project.html" class="nav-link">Project</a>
+
+        <div class="visitor-count">
+            방문자 : <span id="visitorCount">-</span>회
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <h1 class="page-title">🔮 오늘의 운세</h1>
+        <p class="page-subtitle" id="todayDate"></p>
+
+        <!-- 탭 메뉴 -->
+        <div class="tab-menu">
+            <button class="tab-btn active" onclick="switchTab('personal')">📅 내 운세</button>
+            <button class="tab-btn" onclick="switchTab('zodiac')">🐲 띠별 운세</button>
+            <button class="tab-btn" onclick="switchTab('star')">⭐ 별자리 운세</button>
+        </div>
+
+        <!-- 내 운세 탭 -->
+        <div class="tab-content active" id="personalTab">
+            <div class="form-card">
+                <h2 class="form-title">생년월일과 시간을 입력하세요</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>성별</label>
+                        <select id="gender">
+                            <option value="male">남성</option>
+                            <option value="female">여성</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>생년월일</label>
+                        <input type="date" id="birthDate">
+                    </div>
+                    <div class="form-group">
+                        <label>태어난 시간</label>
+                        <select id="birthTime">
+                            <option value="자">자시 (23:00~01:00)</option>
+                            <option value="축">축시 (01:00~03:00)</option>
+                            <option value="인">인시 (03:00~05:00)</option>
+                            <option value="묘">묘시 (05:00~07:00)</option>
+                            <option value="진">진시 (07:00~09:00)</option>
+                            <option value="사">사시 (09:00~11:00)</option>
+                            <option value="오" selected>오시 (11:00~13:00)</option>
+                            <option value="미">미시 (13:00~15:00)</option>
+                            <option value="신">신시 (15:00~17:00)</option>
+                            <option value="유">유시 (17:00~19:00)</option>
+                            <option value="술">술시 (19:00~21:00)</option>
+                            <option value="해">해시 (21:00~23:00)</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn" onclick="showPersonalFortune()">운세 보기</button>
+            </div>
+            <div class="fortune-result" id="personalResult"></div>
+        </div>
+
+        <!-- 띠별 운세 탭 -->
+        <div class="tab-content" id="zodiacTab">
+            <div class="zodiac-grid" id="zodiacGrid"></div>
+            <div class="fortune-result" id="zodiacResult"></div>
+        </div>
+
+        <!-- 별자리 운세 탭 -->
+        <div class="tab-content" id="starTab">
+            <div class="zodiac-grid" id="starGrid"></div>
+            <div class="fortune-result" id="starResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // 띠 데이터
+        const zodiacData = [
+            { name: '쥐띠', icon: '🐀', years: [1960, 1972, 1984, 1996, 2008, 2020] },
+            { name: '소띠', icon: '🐂', years: [1961, 1973, 1985, 1997, 2009, 2021] },
+            { name: '호랑이띠', icon: '🐅', years: [1962, 1974, 1986, 1998, 2010, 2022] },
+            { name: '토끼띠', icon: '🐇', years: [1963, 1975, 1987, 1999, 2011, 2023] },
+            { name: '용띠', icon: '🐲', years: [1964, 1976, 1988, 2000, 2012, 2024] },
+            { name: '뱀띠', icon: '🐍', years: [1965, 1977, 1989, 2001, 2013, 2025] },
+            { name: '말띠', icon: '🐴', years: [1966, 1978, 1990, 2002, 2014, 2026] },
+            { name: '양띠', icon: '🐑', years: [1967, 1979, 1991, 2003, 2015, 2027] },
+            { name: '원숭이띠', icon: '🐵', years: [1968, 1980, 1992, 2004, 2016, 2028] },
+            { name: '닭띠', icon: '🐔', years: [1969, 1981, 1993, 2005, 2017, 2029] },
+            { name: '개띠', icon: '🐕', years: [1970, 1982, 1994, 2006, 2018, 2030] },
+            { name: '돼지띠', icon: '🐷', years: [1971, 1983, 1995, 2007, 2019, 2031] }
+        ];
+
+        // 별자리 데이터
+        const starData = [
+            { name: '물병자리', icon: '♒', dates: '1/20 ~ 2/18' },
+            { name: '물고기자리', icon: '♓', dates: '2/19 ~ 3/20' },
+            { name: '양자리', icon: '♈', dates: '3/21 ~ 4/19' },
+            { name: '황소자리', icon: '♉', dates: '4/20 ~ 5/20' },
+            { name: '쌍둥이자리', icon: '♊', dates: '5/21 ~ 6/21' },
+            { name: '게자리', icon: '♋', dates: '6/22 ~ 7/22' },
+            { name: '사자자리', icon: '♌', dates: '7/23 ~ 8/22' },
+            { name: '처녀자리', icon: '♍', dates: '8/23 ~ 9/22' },
+            { name: '천칭자리', icon: '♎', dates: '9/23 ~ 10/22' },
+            { name: '전갈자리', icon: '♏', dates: '10/23 ~ 11/21' },
+            { name: '사수자리', icon: '♐', dates: '11/22 ~ 12/21' },
+            { name: '염소자리', icon: '♑', dates: '12/22 ~ 1/19' }
+        ];
+
+        // 운세 문구
+        const fortuneMessages = {
+            overall: [
+                "오늘은 전반적으로 좋은 기운이 감돌고 있습니다. 새로운 시작을 하기에 좋은 날이니, 미뤄왔던 일이 있다면 오늘 시작해보세요.",
+                "차분하게 하루를 보내는 것이 좋겠습니다. 급하게 일을 진행하기보다는 신중하게 판단하세요.",
+                "예상치 못한 행운이 찾아올 수 있는 날입니다. 주변을 잘 살피고 기회를 놓치지 마세요.",
+                "오늘은 자기 자신에게 집중하는 것이 좋겠습니다. 휴식을 취하고 재충전의 시간을 가져보세요.",
+                "활발한 에너지가 넘치는 하루입니다. 적극적으로 행동하면 좋은 결과를 얻을 수 있습니다.",
+                "소소한 행복을 느낄 수 있는 날입니다. 작은 것에도 감사하는 마음을 가져보세요.",
+                "변화의 바람이 불어오고 있습니다. 두려워하지 말고 새로운 것을 받아들여 보세요.",
+                "오늘은 계획했던 일들이 순조롭게 진행될 것입니다. 자신감을 가지고 임하세요."
+            ],
+            love: [
+                "연인과의 관계가 더욱 돈독해지는 날입니다. 진심 어린 대화를 나눠보세요.",
+                "새로운 만남의 기회가 있을 수 있습니다. 열린 마음으로 사람들을 대해보세요.",
+                "사소한 오해가 생길 수 있으니 상대방의 말에 귀 기울여주세요.",
+                "로맨틱한 분위기를 연출하기 좋은 날입니다. 특별한 데이트를 계획해보세요.",
+                "혼자만의 시간도 소중합니다. 자신을 사랑하는 시간을 가져보세요.",
+                "감정 표현을 솔직하게 하면 좋은 결과가 있을 것입니다.",
+                "과거의 인연이 다시 찾아올 수 있습니다. 신중하게 판단하세요.",
+                "사랑하는 사람에게 감사의 마음을 표현해보세요. 관계가 더 깊어질 것입니다."
+            ],
+            money: [
+                "재물운이 상승하는 날입니다. 투자에 관심을 가져보는 것도 좋겠습니다.",
+                "불필요한 지출을 줄이고 저축에 힘쓰는 것이 좋겠습니다.",
+                "예상치 못한 수입이 생길 수 있습니다. 기쁜 소식을 기대해보세요.",
+                "금전 거래에 신중을 기해야 합니다. 계약서는 꼼꼼히 확인하세요.",
+                "안정적인 재정 관리가 필요한 시기입니다. 계획적인 소비를 하세요.",
+                "부업이나 새로운 수입원을 찾아보면 좋겠습니다.",
+                "빌려준 돈이 돌아오거나 잊고 있던 수입이 생길 수 있습니다.",
+                "오늘은 큰 지출을 피하고 현금 흐름을 잘 관리하세요."
+            ],
+            health: [
+                "전반적으로 건강 상태가 양호합니다. 꾸준한 운동으로 체력을 유지하세요.",
+                "피로가 쌓여있을 수 있으니 충분한 휴식을 취하세요.",
+                "가벼운 스트레칭이나 산책으로 몸을 풀어주면 좋겠습니다.",
+                "식습관에 주의가 필요합니다. 균형 잡힌 식사를 하세요.",
+                "정신 건강도 중요합니다. 명상이나 취미 활동으로 스트레스를 해소하세요.",
+                "수분 섭취를 충분히 하고, 비타민 보충에 신경 쓰세요.",
+                "무리한 활동은 피하고 몸의 신호에 귀 기울여주세요.",
+                "규칙적인 생활 패턴을 유지하면 컨디션이 좋아질 것입니다."
+            ],
+            lucky: [
+                { number: "3, 7, 12", color: "파란색", direction: "동쪽" },
+                { number: "1, 8, 15", color: "빨간색", direction: "남쪽" },
+                { number: "2, 9, 14", color: "노란색", direction: "서쪽" },
+                { number: "4, 6, 11", color: "초록색", direction: "북쪽" },
+                { number: "5, 10, 13", color: "보라색", direction: "동남쪽" },
+                { number: "7, 14, 21", color: "주황색", direction: "서남쪽" },
+                { number: "3, 9, 18", color: "하늘색", direction: "동북쪽" },
+                { number: "6, 12, 24", color: "분홍색", direction: "서북쪽" }
+            ]
+        };
+
+        // 다크모드
+        function toggleTheme() {
+            const body = document.body;
+            const button = document.querySelector('.theme-toggle');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                button.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                button.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const button = document.querySelector('.theme-toggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                button.textContent = '☀️';
+            }
+        }
+
+        // 탭 전환
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        // 해시 기반 랜덤 생성 (날짜별 고정)
+        function seededRandom(seed) {
+            const x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        }
+
+        function getFortuneIndex(seed, arrayLength) {
+            return Math.floor(seededRandom(seed) * arrayLength);
+        }
+
+        function getLuckPercent(seed) {
+            return Math.floor(seededRandom(seed) * 41) + 60; // 60~100%
+        }
+
+        // 날짜 시드 생성
+        function getDateSeed() {
+            const today = new Date();
+            return today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+        }
+
+        // 띠 계산
+        function getZodiac(year) {
+            const index = (year - 1960) % 12;
+            return index >= 0 ? index : index + 12;
+        }
+
+        // 별자리 계산
+        function getStarSign(month, day) {
+            const signs = [
+                [1, 20, 0], [2, 19, 1], [3, 21, 2], [4, 20, 3], [5, 21, 4], [6, 22, 5],
+                [7, 23, 6], [8, 23, 7], [9, 23, 8], [10, 23, 9], [11, 22, 10], [12, 22, 11]
+            ];
+            
+            for (let i = signs.length - 1; i >= 0; i--) {
+                if (month > signs[i][0] || (month === signs[i][0] && day >= signs[i][1])) {
+                    return signs[i][2];
+                }
+            }
+            return 11; // 염소자리
+        }
+
+        // 운세 결과 HTML 생성
+        function createFortuneHTML(title, icon, seed) {
+            const dateSeed = getDateSeed();
+            const combinedSeed = dateSeed + seed;
+            
+            const overall = fortuneMessages.overall[getFortuneIndex(combinedSeed, fortuneMessages.overall.length)];
+            const love = fortuneMessages.love[getFortuneIndex(combinedSeed + 1, fortuneMessages.love.length)];
+            const money = fortuneMessages.money[getFortuneIndex(combinedSeed + 2, fortuneMessages.money.length)];
+            const health = fortuneMessages.health[getFortuneIndex(combinedSeed + 3, fortuneMessages.health.length)];
+            const lucky = fortuneMessages.lucky[getFortuneIndex(combinedSeed + 4, fortuneMessages.lucky.length)];
+            
+            const overallLuck = getLuckPercent(combinedSeed + 10);
+            const loveLuck = getLuckPercent(combinedSeed + 11);
+            const moneyLuck = getLuckPercent(combinedSeed + 12);
+            const healthLuck = getLuckPercent(combinedSeed + 13);
+
+            const getLuckClass = (percent) => {
+                if (percent >= 80) return 'high';
+                if (percent >= 60) return 'medium';
+                return 'low';
+            };
+
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+
+            return `
+                <div class="fortune-header">
+                    <div class="fortune-icon">${icon}</div>
+                    <h3 class="fortune-title">${title}</h3>
+                    <p class="fortune-date">${dateStr}</p>
+                </div>
+
+                <div class="fortune-section">
+                    <div class="fortune-section-title">🌟 총운</div>
+                    <div class="fortune-section-content">${overall}</div>
+                    <div class="luck-meter">
+                        <div class="luck-bar"><div class="luck-fill ${getLuckClass(overallLuck)}" style="width: ${overallLuck}%"></div></div>
+                        <span class="luck-percent">${overallLuck}%</span>
+                    </div>
+                </div>
+
+                <div class="fortune-section">
+                    <div class="fortune-section-title">💕 애정운</div>
+                    <div class="fortune-section-content">${love}</div>
+                    <div class="luck-meter">
+                        <div class="luck-bar"><div class="luck-fill ${getLuckClass(loveLuck)}" style="width: ${loveLuck}%"></div></div>
+                        <span class="luck-percent">${loveLuck}%</span>
+                    </div>
+                </div>
+
+                <div class="fortune-section">
+                    <div class="fortune-section-title">💰 금전운</div>
+                    <div class="fortune-section-content">${money}</div>
+                    <div class="luck-meter">
+                        <div class="luck-bar"><div class="luck-fill ${getLuckClass(moneyLuck)}" style="width: ${moneyLuck}%"></div></div>
+                        <span class="luck-percent">${moneyLuck}%</span>
+                    </div>
+                </div>
+
+                <div class="fortune-section">
+                    <div class="fortune-section-title">💪 건강운</div>
+                    <div class="fortune-section-content">${health}</div>
+                    <div class="luck-meter">
+                        <div class="luck-bar"><div class="luck-fill ${getLuckClass(healthLuck)}" style="width: ${healthLuck}%"></div></div>
+                        <span class="luck-percent">${healthLuck}%</span>
+                    </div>
+                </div>
+
+                <div class="fortune-section">
+                    <div class="fortune-section-title">🍀 행운의 키워드</div>
+                    <div class="fortune-section-content">
+                        행운의 숫자: <strong>${lucky.number}</strong><br>
+                        행운의 색상: <strong>${lucky.color}</strong><br>
+                        행운의 방향: <strong>${lucky.direction}</strong>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 내 운세 보기
+        function showPersonalFortune() {
+            const gender = document.getElementById('gender').value;
+            const birthDate = document.getElementById('birthDate').value;
+            const birthTime = document.getElementById('birthTime').value;
+
+            if (!birthDate) {
+                alert('생년월일을 입력해주세요.');
+                return;
+            }
+
+            const date = new Date(birthDate);
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+
+            const zodiacIndex = getZodiac(year);
+            const starIndex = getStarSign(month, day);
+            const timeIndex = ['자','축','인','묘','진','사','오','미','신','유','술','해'].indexOf(birthTime);
+
+            const seed = year + month * 100 + day * 10 + timeIndex + (gender === 'male' ? 1 : 2);
+            const zodiac = zodiacData[zodiacIndex];
+            const star = starData[starIndex];
+
+            const title = `${zodiac.icon} ${zodiac.name} · ${star.icon} ${star.name}`;
+            const icon = gender === 'male' ? '👨' : '👩';
+
+            const resultEl = document.getElementById('personalResult');
+            resultEl.innerHTML = createFortuneHTML(title, icon, seed);
+            resultEl.classList.add('show');
+        }
+
+        // 띠별 운세 그리드 생성
+        function renderZodiacGrid() {
+            const grid = document.getElementById('zodiacGrid');
+            grid.innerHTML = zodiacData.map((zodiac, index) => `
+                <div class="zodiac-card" onclick="showZodiacFortune(${index})">
+                    <div class="zodiac-icon">${zodiac.icon}</div>
+                    <div class="zodiac-name">${zodiac.name}</div>
+                    <div class="zodiac-years">${zodiac.years.slice(-3).join(', ')}년생</div>
+                </div>
+            `).join('');
+        }
+
+        // 띠별 운세 보기
+        function showZodiacFortune(index) {
+            document.querySelectorAll('#zodiacGrid .zodiac-card').forEach(card => card.classList.remove('selected'));
+            document.querySelectorAll('#zodiacGrid .zodiac-card')[index].classList.add('selected');
+
+            const zodiac = zodiacData[index];
+            const seed = index * 1000;
+
+            const resultEl = document.getElementById('zodiacResult');
+            resultEl.innerHTML = createFortuneHTML(zodiac.name, zodiac.icon, seed);
+            resultEl.classList.add('show');
+        }
+
+        // 별자리 운세 그리드 생성
+        function renderStarGrid() {
+            const grid = document.getElementById('starGrid');
+            grid.innerHTML = starData.map((star, index) => `
+                <div class="zodiac-card" onclick="showStarFortune(${index})">
+                    <div class="zodiac-icon">${star.icon}</div>
+                    <div class="zodiac-name">${star.name}</div>
+                    <div class="zodiac-dates">${star.dates}</div>
+                </div>
+            `).join('');
+        }
+
+        // 별자리 운세 보기
+        function showStarFortune(index) {
+            document.querySelectorAll('#starGrid .zodiac-card').forEach(card => card.classList.remove('selected'));
+            document.querySelectorAll('#starGrid .zodiac-card')[index].classList.add('selected');
+
+            const star = starData[index];
+            const seed = index * 2000;
+
+            const resultEl = document.getElementById('starResult');
+            resultEl.innerHTML = createFortuneHTML(star.name, star.icon, seed);
+            resultEl.classList.add('show');
+        }
+
+        // 오늘 날짜 표시
+        function setTodayDate() {
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('todayDate').textContent = today.toLocaleDateString('ko-KR', options);
+        }
+
+        // 초기화
+        window.onload = function() {
+            loadTheme();
+            setTodayDate();
+            renderZodiacGrid();
+            renderStarGrid();
+
+            // 기본 생년월일 설정
+            document.getElementById('birthDate').value = '2000-01-01';
+        };
+    </script>
+</body>
+</html>
