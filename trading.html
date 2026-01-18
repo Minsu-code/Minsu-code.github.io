@@ -509,6 +509,112 @@
             color: var(--text-secondary);
         }
 
+        .modal-buttons .btn.delete {
+            background: #e53935;
+            color: white;
+        }
+
+        /* 거래 상세 모달 */
+        .trade-detail-modal {
+            max-width: 500px;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .detail-ticker {
+            font-size: 28px;
+            color: var(--text-primary);
+            margin: 0;
+            transition: color 0.3s;
+        }
+
+        .detail-type {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .detail-type.buy {
+            background: rgba(76, 175, 80, 0.15);
+            color: var(--profit-color);
+        }
+
+        .detail-type.sell {
+            background: rgba(229, 57, 53, 0.15);
+            color: var(--loss-color);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+
+        .detail-item.full {
+            grid-column: 1 / -1;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-size: 18px;
+            color: var(--text-primary);
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .detail-value.large {
+            font-size: 24px;
+        }
+
+        .detail-memo-section {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+
+        .detail-memo {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin-top: 8px;
+            transition: color 0.3s;
+        }
+
+        /* 테이블 행 클릭 가능 표시 */
+        #tradeTableBody tr {
+            cursor: pointer;
+        }
+
+        #tradeTableBody tr:hover {
+            background: var(--hover-bg);
+        }
+
         /* 반응형 */
         @media (max-width: 600px) {
             .stats-container {
@@ -691,7 +797,6 @@
                         <th>Total</th>
                         <th>Category</th>
                         <th>Memo</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody id="tradeTableBody">
@@ -722,6 +827,46 @@
         </div>
     </div>
 
+    <!-- 거래 상세 모달 -->
+    <div class="modal" id="tradeDetailModal">
+        <div class="modal-content trade-detail-modal">
+            <div class="detail-header">
+                <h3 class="detail-ticker" id="detailTicker">AAPL</h3>
+                <span class="detail-type" id="detailType">BUY</span>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Date</div>
+                    <div class="detail-value" id="detailDate">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Category</div>
+                    <div class="detail-value" id="detailCategory">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Quantity</div>
+                    <div class="detail-value" id="detailQuantity">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Price</div>
+                    <div class="detail-value" id="detailPrice">-</div>
+                </div>
+                <div class="detail-item full">
+                    <div class="detail-label">Total</div>
+                    <div class="detail-value large" id="detailTotal">-</div>
+                </div>
+            </div>
+            <div class="detail-memo-section">
+                <div class="detail-label">Memo</div>
+                <div class="detail-memo" id="detailMemo">-</div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeTradeDetail()">Close</button>
+                <button class="btn delete" id="detailDeleteBtn" onclick="deleteTradeFromDetail()">🗑️ Delete</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script>
@@ -741,7 +886,55 @@
         let trades = [];
         let seedHistory = [];
         let currentSeedType = 'add';
+        let currentTradeId = null;
         const ADMIN_PASSWORD = 'Dpfsleh105~';
+
+        // 거래 상세 보기
+        function openTradeDetail(id) {
+            const trade = trades.find(t => t.id === id);
+            if (!trade) return;
+
+            currentTradeId = id;
+
+            document.getElementById('detailTicker').textContent = trade.ticker;
+            
+            const typeEl = document.getElementById('detailType');
+            typeEl.textContent = trade.type.toUpperCase();
+            typeEl.className = 'detail-type ' + trade.type;
+
+            document.getElementById('detailDate').textContent = trade.date;
+            document.getElementById('detailCategory').textContent = trade.category.toUpperCase();
+            document.getElementById('detailQuantity').textContent = trade.quantity.toLocaleString();
+            document.getElementById('detailPrice').textContent = '$' + trade.price.toLocaleString();
+            document.getElementById('detailTotal').textContent = '$' + trade.total.toLocaleString();
+            document.getElementById('detailMemo').textContent = trade.memo || 'No memo';
+
+            document.getElementById('tradeDetailModal').classList.add('active');
+        }
+
+        function closeTradeDetail() {
+            document.getElementById('tradeDetailModal').classList.remove('active');
+            currentTradeId = null;
+        }
+
+        async function deleteTradeFromDetail() {
+            if (!currentTradeId) return;
+
+            const password = prompt('비밀번호를 입력하세요:');
+            if (password !== ADMIN_PASSWORD) {
+                alert('비밀번호가 틀렸습니다! 🚫');
+                return;
+            }
+            if (!confirm('Delete this trade?')) return;
+
+            try {
+                await db.collection('trades').doc(currentTradeId).delete();
+                closeTradeDetail();
+                loadTrades();
+            } catch (error) {
+                alert('Error deleting trade: ' + error.message);
+            }
+        }
 
         // 다크모드
         function toggleTheme() {
@@ -855,12 +1048,12 @@
             }
 
             if (filteredTrades.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-message">No trades found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-message">No trades found.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = filteredTrades.map(trade => `
-                <tr>
+                <tr onclick="openTradeDetail('${trade.id}')">
                     <td>${trade.date}</td>
                     <td><strong>${trade.ticker}</strong></td>
                     <td class="${trade.type === 'buy' ? 'type-buy' : 'type-sell'}">${trade.type.toUpperCase()}</td>
@@ -869,26 +1062,8 @@
                     <td>$${trade.total.toLocaleString()}</td>
                     <td>${trade.category.toUpperCase()}</td>
                     <td class="memo-cell" title="${trade.memo}">${trade.memo || '-'}</td>
-                    <td><button class="delete-btn" onclick="deleteTrade('${trade.id}')">🗑️</button></td>
                 </tr>
             `).join('');
-        }
-
-        // 매매 삭제
-        async function deleteTrade(id) {
-            const password = prompt('비밀번호를 입력하세요:');
-            if (password !== ADMIN_PASSWORD) {
-                alert('비밀번호가 틀렸습니다! 🚫');
-                return;
-            }
-            if (!confirm('Delete this trade?')) return;
-
-            try {
-                await db.collection('trades').doc(id).delete();
-                loadTrades();
-            } catch (error) {
-                alert('Error deleting trade: ' + error.message);
-            }
         }
 
         // 통계 업데이트
