@@ -6,19 +6,57 @@
     <title>Tony An의 페이지</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f5f5f5; min-height: 100vh; }
+        :root {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: white;
+            --bg-card: #fafafa;
+            --text-primary: #222;
+            --text-secondary: #666;
+            --text-muted: #888;
+            --border-color: #e0e0e0;
+            --accent-color: #333;
+            --hover-bg: #f0f0f0;
+            --shadow: rgba(0,0,0,0.08);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-card: #2a2a2a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #888;
+            --border-color: #404040;
+            --accent-color: #e0e0e0;
+            --hover-bg: #333;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: var(--bg-primary); 
+            min-height: 100vh; 
+            transition: background 0.3s, color 0.3s;
+        }
         
         /* 다크 상단바 */
         .top-bar {
             background: #1a1a1a;
             padding: 12px 24px;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .social-links {
+            display: flex;
+            align-items: center;
         }
         
         .social-link {
@@ -37,75 +75,413 @@
             height: 24px;
             fill: white;
         }
+
+        /* 다크모드 토글 버튼 */
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 5px;
+            transition: transform 0.2s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.2);
+        }
         
         .main-content {
             padding: 20px;
         }
         
-        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); overflow: hidden; }
-        .profile-section { background: white; border-bottom: 1px solid #e0e0e0; padding: 40px; text-align: center; }
-        .profile-image { width: 150px; height: 150px; border-radius: 50%; border: 3px solid #333; margin: 0 auto 20px; background: #fafafa; overflow: hidden; }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: var(--bg-secondary); 
+            border-radius: 20px; 
+            box-shadow: 0 2px 20px var(--shadow); 
+            overflow: hidden; 
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .profile-section { 
+            background: var(--bg-secondary); 
+            border-bottom: 1px solid var(--border-color); 
+            padding: 40px; 
+            text-align: center; 
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .profile-image { 
+            width: 150px; 
+            height: 150px; 
+            border-radius: 50%; 
+            border: 3px solid var(--accent-color); 
+            margin: 0 auto 20px; 
+            background: var(--bg-card); 
+            overflow: hidden; 
+            transition: border-color 0.3s, background 0.3s;
+        }
+
         .profile-image img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-section h1 { margin: 10px 0; font-size: 32px; color: #222; font-weight: 600; }
-        .profile-section p { margin: 5px 0; color: #666; font-size: 16px; }
-        .quote { font-family: 'Dancing Script', cursive; font-size: 24px; color: #555; margin-top: 25px; padding: 15px 20px; font-style: italic; }
-        .diary-section { padding: 40px; }
-        .diary-section h2 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 30px; font-weight: 600; }
-        .diary-item { background: #fafafa; border-left: 4px solid #333; padding: 20px 25px; margin-bottom: 15px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
-        .diary-item:hover { transform: translateX(5px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); background: #f0f0f0; }
+
+        .profile-section h1 { 
+            margin: 10px 0; 
+            font-size: 32px; 
+            color: var(--text-primary); 
+            font-weight: 600; 
+            transition: color 0.3s;
+        }
+
+        .profile-section p { 
+            margin: 5px 0; 
+            color: var(--text-secondary); 
+            font-size: 16px; 
+            transition: color 0.3s;
+        }
+
+        .quote { 
+            font-family: 'Dancing Script', cursive; 
+            font-size: 24px; 
+            color: var(--text-secondary); 
+            margin-top: 25px; 
+            padding: 15px 20px; 
+            font-style: italic; 
+            transition: color 0.3s;
+        }
+
+        .diary-section { 
+            padding: 40px; 
+        }
+
+        .diary-section h2 { 
+            color: var(--text-primary); 
+            border-bottom: 2px solid var(--accent-color); 
+            padding-bottom: 10px; 
+            margin-bottom: 30px; 
+            font-weight: 600; 
+            transition: color 0.3s, border-color 0.3s;
+        }
+
+        .diary-item { 
+            background: var(--bg-card); 
+            border-left: 4px solid var(--accent-color); 
+            padding: 20px 25px; 
+            margin-bottom: 15px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+
+        .diary-item:hover { 
+            transform: translateX(5px); 
+            box-shadow: 0 4px 12px var(--shadow); 
+            background: var(--hover-bg); 
+        }
+
         .diary-item-left { flex: 1; }
-        .diary-title { color: #222; font-weight: 600; margin-bottom: 8px; font-size: 16px; }
-        .diary-meta { color: #888; font-size: 13px; display: flex; gap: 15px; flex-wrap: wrap; }
+
+        .diary-title { 
+            color: var(--text-primary); 
+            font-weight: 600; 
+            margin-bottom: 8px; 
+            font-size: 16px; 
+            transition: color 0.3s;
+        }
+
+        .diary-meta { 
+            color: var(--text-muted); 
+            font-size: 13px; 
+            display: flex; 
+            gap: 15px; 
+            flex-wrap: wrap; 
+        }
+
         .diary-meta span { display: flex; align-items: center; gap: 4px; }
-        .diary-arrow { color: #666; font-size: 20px; }
-        .write-btn { background: #333; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 15px; margin-bottom: 25px; transition: background 0.2s; width: 100%; }
-        .write-btn:hover { background: #555; }
+
+        .diary-arrow { 
+            color: var(--text-secondary); 
+            font-size: 20px; 
+            transition: color 0.3s;
+        }
+
+        .write-btn { 
+            background: var(--accent-color); 
+            color: var(--bg-secondary); 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            margin-bottom: 25px; 
+            transition: all 0.3s; 
+            width: 100%; 
+        }
+
+        .write-btn:hover { 
+            opacity: 0.8;
+        }
+
         .category-filter { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .category-btn { background: #f0f0f0; border: 2px solid #e0e0e0; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; color: #666; transition: all 0.2s; }
-        .category-btn:hover { background: #e8e8e8; }
-        .category-btn.active { background: #333; color: white; border-color: #333; }
-        .category-badge { display: inline-block; background: #f0f0f0; padding: 4px 12px; border-radius: 12px; font-size: 12px; color: #666; margin-left: 10px; }
+
+        .category-btn { 
+            background: var(--bg-card); 
+            border: 2px solid var(--border-color); 
+            padding: 8px 20px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            color: var(--text-secondary); 
+            transition: all 0.2s; 
+        }
+
+        .category-btn:hover { 
+            background: var(--hover-bg); 
+        }
+
+        .category-btn.active { 
+            background: var(--accent-color); 
+            color: var(--bg-secondary); 
+            border-color: var(--accent-color); 
+        }
+
+        .category-badge { 
+            display: inline-block; 
+            background: var(--bg-card); 
+            padding: 4px 12px; 
+            border-radius: 12px; 
+            font-size: 12px; 
+            color: var(--text-secondary); 
+            margin-left: 10px; 
+        }
+
         .category-badge.stock { background: #e8f5e9; color: #2e7d32; }
         .category-badge.coin { background: #fff3e0; color: #e65100; }
-        .write-form { background: #fafafa; border: 2px solid #e0e0e0; border-radius: 12px; padding: 25px; margin-bottom: 25px; display: none; }
+
+        [data-theme="dark"] .category-badge.stock { background: #1b3d1f; color: #81c784; }
+        [data-theme="dark"] .category-badge.coin { background: #3d2914; color: #ffb74d; }
+
+        .write-form { 
+            background: var(--bg-card); 
+            border: 2px solid var(--border-color); 
+            border-radius: 12px; 
+            padding: 25px; 
+            margin-bottom: 25px; 
+            display: none; 
+            transition: background 0.3s, border-color 0.3s;
+        }
+
         .write-form.active { display: block; animation: fadeIn 0.3s; }
-        .write-form h3 { margin-top: 0; color: #333; }
+
+        .write-form h3 { 
+            margin-top: 0; 
+            color: var(--text-primary); 
+            transition: color 0.3s;
+        }
+
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; color: #444; font-weight: 500; font-size: 14px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; box-sizing: border-box; }
+
+        .form-group label { 
+            display: block; 
+            margin-bottom: 8px; 
+            color: var(--text-secondary); 
+            font-weight: 500; 
+            font-size: 14px; 
+            transition: color 0.3s;
+        }
+
+        .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            font-size: 14px; 
+            font-family: inherit; 
+            box-sizing: border-box; 
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+
         .form-group textarea { min-height: 150px; resize: vertical; }
+
         .form-buttons { display: flex; gap: 10px; }
-        .form-buttons button { flex: 1; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
-        .submit-btn { background: #333; color: white; }
-        .submit-btn:hover { background: #555; }
-        .cancel-btn { background: #e0e0e0; color: #666; }
-        .cancel-btn:hover { background: #d0d0d0; }
-        .diary-detail { display: none; padding: 40px; animation: fadeIn 0.3s; }
+
+        .form-buttons button { 
+            flex: 1; 
+            padding: 10px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            transition: all 0.2s; 
+        }
+
+        .submit-btn { 
+            background: var(--accent-color); 
+            color: var(--bg-secondary); 
+        }
+
+        .submit-btn:hover { opacity: 0.8; }
+
+        .cancel-btn { 
+            background: var(--border-color); 
+            color: var(--text-secondary); 
+        }
+
+        .cancel-btn:hover { opacity: 0.8; }
+
+        .diary-detail { 
+            display: none; 
+            padding: 40px; 
+            animation: fadeIn 0.3s; 
+        }
+
         .diary-detail.active { display: block; }
-        .back-button { background: #333; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; margin-bottom: 30px; transition: background 0.2s; }
-        .back-button:hover { background: #555; }
-        .delete-button { background: #e53935; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; margin-bottom: 30px; margin-left: 10px; transition: background 0.2s; }
+
+        .back-button { 
+            background: var(--accent-color); 
+            color: var(--bg-secondary); 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-bottom: 30px; 
+            transition: all 0.2s; 
+        }
+
+        .back-button:hover { opacity: 0.8; }
+
+        .delete-button { 
+            background: #e53935; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-bottom: 30px; 
+            margin-left: 10px; 
+            transition: background 0.2s; 
+        }
+
         .delete-button:hover { background: #c62828; }
-        .detail-meta { color: #888; font-size: 14px; margin-bottom: 15px; display: flex; gap: 20px; flex-wrap: wrap; }
+
+        .detail-meta { 
+            color: var(--text-muted); 
+            font-size: 14px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            gap: 20px; 
+            flex-wrap: wrap; 
+        }
+
         .detail-meta span { display: flex; align-items: center; gap: 5px; }
-        .detail-title { color: #222; font-size: 28px; font-weight: 600; margin-bottom: 25px; }
-        .detail-content { color: #444; line-height: 1.8; font-size: 16px; white-space: pre-wrap; }
-        .detail-image { max-width: 100%; border-radius: 12px; margin-top: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .loading { text-align: center; padding: 40px; color: #888; }
+
+        .detail-title { 
+            color: var(--text-primary); 
+            font-size: 28px; 
+            font-weight: 600; 
+            margin-bottom: 25px; 
+            transition: color 0.3s;
+        }
+
+        .detail-content { 
+            color: var(--text-secondary); 
+            line-height: 1.8; 
+            font-size: 16px; 
+            white-space: pre-wrap; 
+            transition: color 0.3s;
+        }
+
+        .detail-image { 
+            max-width: 100%; 
+            border-radius: 12px; 
+            margin-top: 20px; 
+            box-shadow: 0 2px 10px var(--shadow); 
+        }
+
+        .loading { 
+            text-align: center; 
+            padding: 40px; 
+            color: var(--text-muted); 
+        }
+
         .hidden { display: none; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .image-upload-area { border: 2px dashed #ddd; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; margin-top: 10px; }
-        .image-upload-area:hover { border-color: #333; background: #fafafa; }
-        .image-upload-area.has-image { border-style: solid; border-color: #4caf50; }
-        .image-preview { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 10px; }
-        .remove-image-btn { background: #e53935; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 10px; }
-        .has-image-badge { display: inline-block; background: #4caf50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 8px; }
-        .view-count { color: #888; font-size: 13px; }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .image-upload-area { 
+            border: 2px dashed var(--border-color); 
+            border-radius: 8px; 
+            padding: 20px; 
+            text-align: center; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            margin-top: 10px; 
+            color: var(--text-secondary);
+        }
+
+        .image-upload-area:hover { 
+            border-color: var(--accent-color); 
+            background: var(--bg-card); 
+        }
+
+        .image-upload-area.has-image { 
+            border-style: solid; 
+            border-color: #4caf50; 
+        }
+
+        .image-preview { 
+            max-width: 100%; 
+            max-height: 200px; 
+            border-radius: 8px; 
+            margin-top: 10px; 
+        }
+
+        .remove-image-btn { 
+            background: #e53935; 
+            color: white; 
+            border: none; 
+            padding: 5px 10px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            margin-top: 10px; 
+        }
+
+        .has-image-badge { 
+            display: inline-block; 
+            background: #4caf50; 
+            color: white; 
+            padding: 2px 8px; 
+            border-radius: 10px; 
+            font-size: 11px; 
+            margin-left: 8px; 
+        }
+
+        .view-count { 
+            color: var(--text-muted); 
+            font-size: 13px; 
+        }
     </style>
 </head>
 <body>
     <!-- 다크 상단바 -->
     <div class="top-bar">
+        <!-- 다크모드 토글 버튼 (왼쪽) -->
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <span class="icon">🌙</span>
+        </button>
+
+        <div class="social-links">
         <a href="https://github.com/Minsu-code" target="_blank" class="social-link" title="GitHub" style="margin-right: 15px;">
             <svg class="x-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
@@ -116,6 +492,7 @@
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
             </svg>
         </a>
+        </div>
     </div>
     
     <div class="main-content">
@@ -126,8 +503,8 @@
                 </div>
                 <h1>Tony An</h1>
                 <p>Beginner Developer Starting to Code</p>
-                <p style="color: #888; font-size: 14px; margin-top: 8px;">📍 Seoul, South Korea</p>
-                <p style="color: #888; font-size: 14px; margin-top: 4px;">🎂 1997.01.04</p>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">📍 Seoul, South Korea</p>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">🎂 1997.01.04</p>
                 <div class="quote">"The best way to predict the future is to create it."</div>
             </div>
             <div id="diarySection" class="diary-section">
@@ -162,13 +539,45 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script>
+        // 다크모드 토글 기능
+        function toggleTheme() {
+            const body = document.body;
+            const button = document.querySelector('.theme-toggle');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                button.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                button.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // 페이지 로드 시 저장된 테마 적용
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const button = document.querySelector('.theme-toggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                button.textContent = '☀️';
+            }
+        }
+
         const firebaseConfig = { apiKey: "AIzaSyBqFDAe_mY7T8FWL-9dzjLd3yHgG_rZE6Q", authDomain: "my-website-minsu.firebaseapp.com", projectId: "my-website-minsu", storageBucket: "my-website-minsu.firebasestorage.app", messagingSenderId: "766576447022", appId: "1:766576447022:web:4b03228299fcf0f39f99bf", measurementId: "G-ND5YSMW9VH" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const ADMIN_PASSWORD = 'Dpfsleh105~';
         let diaries = [], investments = [], investmentFilter = 'all', currentPost = null, currentPostType = null;
         let currentImageData = null;
-        window.onload = function() { loadDiaries(); loadInvestments(); };
+        
+        window.onload = function() { 
+            loadTheme();
+            loadDiaries(); 
+            loadInvestments(); 
+        };
         
         async function loadDiaries() { 
             try { 
@@ -179,7 +588,7 @@
                 }); 
                 renderDiaryList(); 
             } catch (error) { 
-                document.getElementById('diaryListContainer').innerHTML = '<p style="color: #999; text-align: center; padding: 40px 0;">일기를 불러오지 못했습니다.</p>'; 
+                document.getElementById('diaryListContainer').innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">일기를 불러오지 못했습니다.</p>'; 
             } 
         }
         
@@ -192,7 +601,7 @@
                 }); 
                 renderInvestmentList(); 
             } catch (error) { 
-                document.getElementById('investmentListContainer').innerHTML = '<p style="color: #999; text-align: center; padding: 40px 0;">투자 글을 불러오지 못했습니다.</p>'; 
+                document.getElementById('investmentListContainer').innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">투자 글을 불러오지 못했습니다.</p>'; 
             } 
         }
         
@@ -200,7 +609,7 @@
             const container = document.getElementById('diaryListContainer'); 
             container.innerHTML = ''; 
             if (diaries.length === 0) { 
-                container.innerHTML = '<p style="color: #999; text-align: center; padding: 40px 0;">아직 작성된 일기가 없습니다.</p>'; 
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">아직 작성된 일기가 없습니다.</p>'; 
                 return; 
             } 
             diaries.forEach((diary, index) => { 
@@ -226,7 +635,7 @@
             container.innerHTML = ''; 
             const filteredInvestments = investmentFilter === 'all' ? investments : investments.filter(i => i.category === investmentFilter); 
             if (filteredInvestments.length === 0) { 
-                container.innerHTML = '<p style="color: #999; text-align: center; padding: 40px 0;">아직 작성된 투자 글이 없습니다.</p>'; 
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">아직 작성된 투자 글이 없습니다.</p>'; 
                 return; 
             } 
             filteredInvestments.forEach((investment, index) => { 
@@ -296,7 +705,7 @@
             if (type === 'investment') { 
                 categorySelect = '<div class="form-group"><label>카테고리</label><select id="postCategory"><option value="stock">주식</option><option value="coin">코인</option></select></div>'; 
             } 
-            const formHtml = '<div class="write-form active" id="writeForm"><h3>✏️ 새 ' + titleText + ' 작성</h3><div class="form-group"><label>제목</label><input type="text" id="postTitle" placeholder="제목을 입력하세요"></div>' + categorySelect + '<div class="form-group"><label>내용</label><textarea id="postContent" placeholder="내용을 작성하세요..."></textarea></div><div class="form-group"><label>📷 이미지 첨부 (선택)</label><div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById(\'imageInput\').click()"><p>클릭하여 이미지 선택</p><p style="font-size:12px;color:#888;">또는 이미지를 여기에 드래그</p></div><input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)"><div id="imagePreviewContainer"></div></div><div class="form-buttons"><button class="submit-btn" onclick="savePost(\'' + type + '\')">저장하기</button><button class="cancel-btn" onclick="hideWriteForm()">취소</button></div></div>'; 
+            const formHtml = '<div class="write-form active" id="writeForm"><h3>✏️ 새 ' + titleText + ' 작성</h3><div class="form-group"><label>제목</label><input type="text" id="postTitle" placeholder="제목을 입력하세요"></div>' + categorySelect + '<div class="form-group"><label>내용</label><textarea id="postContent" placeholder="내용을 작성하세요..."></textarea></div><div class="form-group"><label>📷 이미지 첨부 (선택)</label><div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById(\'imageInput\').click()"><p>클릭하여 이미지 선택</p><p style="font-size:12px;color:var(--text-muted);">또는 이미지를 여기에 드래그</p></div><input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)"><div id="imagePreviewContainer"></div></div><div class="form-buttons"><button class="submit-btn" onclick="savePost(\'' + type + '\')">저장하기</button><button class="cancel-btn" onclick="hideWriteForm()">취소</button></div></div>'; 
             const containerId = type === 'diary' ? 'diaryListContainer' : 'investmentListContainer'; 
             document.getElementById(containerId).insertAdjacentHTML('beforebegin', formHtml); 
             setupDragDrop(); 
@@ -306,17 +715,17 @@
             const area = document.getElementById('imageUploadArea'); 
             area.addEventListener('dragover', (e) => { 
                 e.preventDefault(); 
-                area.style.borderColor = '#333'; 
-                area.style.background = '#f0f0f0'; 
+                area.style.borderColor = 'var(--accent-color)'; 
+                area.style.background = 'var(--hover-bg)'; 
             }); 
             area.addEventListener('dragleave', (e) => { 
                 e.preventDefault(); 
-                area.style.borderColor = '#ddd'; 
+                area.style.borderColor = 'var(--border-color)'; 
                 area.style.background = 'transparent'; 
             }); 
             area.addEventListener('drop', (e) => { 
                 e.preventDefault(); 
-                area.style.borderColor = '#ddd'; 
+                area.style.borderColor = 'var(--border-color)'; 
                 area.style.background = 'transparent'; 
                 const file = e.dataTransfer.files[0]; 
                 if (file && file.type.startsWith('image/')) { 
