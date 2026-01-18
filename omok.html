@@ -222,12 +222,10 @@
             box-shadow: 0 0 0 3px #e74c3c;
         }
 
-        .controls {
-            margin-top: 25px;
+        .score-board {
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
         }
 
         .btn {
@@ -244,12 +242,6 @@
 
         .btn:hover {
             opacity: 0.8;
-        }
-
-        .score-board {
-            display: flex;
-            gap: 40px;
-            margin-bottom: 20px;
         }
 
         .score-item {
@@ -381,11 +373,6 @@
         <div class="game-container">
             <div class="board" id="board"></div>
         </div>
-
-        <div class="controls">
-            <button class="btn" onclick="resetGame()">🔄 New Game</button>
-            <button class="btn" onclick="undoMove()">↩️ Undo</button>
-        </div>
     </div>
 
     <!-- 승리 모달 -->
@@ -405,6 +392,70 @@
         let moveHistory = [];
         let playerScore = 0;
         let aiScore = 0;
+
+        // 사운드 생성 (Web Audio API)
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playStoneSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        function playWinSound() {
+            const notes = [523, 659, 784, 1047];
+            notes.forEach((freq, i) => {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = freq;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                }, i * 150);
+            });
+        }
+
+        function playLoseSound() {
+            const notes = [400, 350, 300, 250];
+            notes.forEach((freq, i) => {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = freq;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                }, i * 200);
+            });
+        }
 
         // 다크모드
         function toggleTheme() {
@@ -458,7 +509,6 @@
                         const stone = document.createElement('div');
                         stone.className = `stone ${board[y][x]}`;
                         
-                        // 마지막 수 표시
                         if (moveHistory.length > 0) {
                             const lastMove = moveHistory[moveHistory.length - 1];
                             if (lastMove.x === x && lastMove.y === y) {
@@ -480,12 +530,19 @@
         function handleClick(x, y) {
             if (gameOver || board[y][x] || currentPlayer !== 'black') return;
 
+            // 오디오 컨텍스트 resume (브라우저 정책)
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
             placeStone(x, y, 'black');
+            playStoneSound();
             
             if (checkWin(x, y, 'black')) {
                 gameOver = true;
                 playerScore++;
                 document.getElementById('playerScore').textContent = playerScore;
+                playWinSound();
                 showWinner('black');
                 return;
             }
@@ -493,7 +550,6 @@
             currentPlayer = 'white';
             updateStatus();
 
-            // AI 턴
             setTimeout(() => {
                 if (!gameOver) {
                     aiMove();
@@ -511,11 +567,13 @@
             const move = findBestMove();
             if (move) {
                 placeStone(move.x, move.y, 'white');
+                playStoneSound();
                 
                 if (checkWin(move.x, move.y, 'white')) {
                     gameOver = true;
                     aiScore++;
                     document.getElementById('aiScore').textContent = aiScore;
+                    playLoseSound();
                     showWinner('white');
                     return;
                 }
@@ -527,20 +585,22 @@
 
         function findBestMove() {
             let bestScore = -Infinity;
-            let bestMove = null;
+            let bestMoves = [];
 
-            // 빈 칸 찾기
             const emptyCells = [];
             for (let y = 0; y < BOARD_SIZE; y++) {
                 for (let x = 0; x < BOARD_SIZE; x++) {
                     if (!board[y][x]) {
-                        emptyCells.push({ x, y });
+                        // 주변에 돌이 있는 칸만 고려 (효율성)
+                        if (hasNearbyStone(x, y)) {
+                            emptyCells.push({ x, y });
+                        }
                     }
                 }
             }
 
-            // 첫 수면 중앙 근처에 두기
-            if (moveHistory.length === 1) {
+            // 첫 수면 중앙 근처
+            if (moveHistory.length <= 1) {
                 const center = Math.floor(BOARD_SIZE / 2);
                 const nearby = [
                     { x: center, y: center },
@@ -556,40 +616,74 @@
                 }
             }
 
+            if (emptyCells.length === 0) {
+                // 아무 빈칸이나
+                for (let y = 0; y < BOARD_SIZE; y++) {
+                    for (let x = 0; x < BOARD_SIZE; x++) {
+                        if (!board[y][x]) return { x, y };
+                    }
+                }
+            }
+
             for (const cell of emptyCells) {
                 const score = evaluatePosition(cell.x, cell.y);
                 if (score > bestScore) {
                     bestScore = score;
-                    bestMove = cell;
+                    bestMoves = [cell];
+                } else if (score === bestScore) {
+                    bestMoves.push(cell);
                 }
             }
 
-            return bestMove;
+            // 동점이면 랜덤 선택 (예측 불가능성 추가)
+            if (bestMoves.length > 0) {
+                return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+            }
+
+            return null;
+        }
+
+        function hasNearbyStone(x, y) {
+            for (let dy = -2; dy <= 2; dy++) {
+                for (let dx = -2; dx <= 2; dx++) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+                    if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
+                        if (board[ny][nx]) return true;
+                    }
+                }
+            }
+            return false;
         }
 
         function evaluatePosition(x, y) {
             let score = 0;
 
-            // AI 공격 점수
-            score += getLineScore(x, y, 'white') * 1.1;
-            
-            // 플레이어 방어 점수
-            score += getLineScore(x, y, 'black');
+            // 30% 확률로 실수 (난이도 조절)
+            if (Math.random() < 0.3) {
+                return Math.random() * 100;
+            }
 
-            // 중앙 가까울수록 약간의 보너스
+            // AI 공격 점수
+            score += getLineScore(x, y, 'white') * 1.0;
+            
+            // 플레이어 방어 점수 (방어 우선도 약간 낮춤)
+            score += getLineScore(x, y, 'black') * 0.9;
+
+            // 중앙 보너스
             const center = Math.floor(BOARD_SIZE / 2);
             const distFromCenter = Math.abs(x - center) + Math.abs(y - center);
-            score += (BOARD_SIZE - distFromCenter) * 0.1;
+            score += (BOARD_SIZE - distFromCenter) * 0.05;
 
             return score;
         }
 
         function getLineScore(x, y, player) {
             const directions = [
-                [1, 0],   // 가로
-                [0, 1],   // 세로
-                [1, 1],   // 대각선 \
-                [1, -1]   // 대각선 /
+                [1, 0],
+                [0, 1],
+                [1, 1],
+                [1, -1]
             ];
 
             let totalScore = 0;
@@ -597,14 +691,14 @@
             for (const [dx, dy] of directions) {
                 const { count, openEnds } = countLine(x, y, dx, dy, player);
                 
-                // 점수 계산
-                if (count >= 5) totalScore += 100000;
-                else if (count === 4 && openEnds === 2) totalScore += 10000;
-                else if (count === 4 && openEnds === 1) totalScore += 1000;
-                else if (count === 3 && openEnds === 2) totalScore += 1000;
-                else if (count === 3 && openEnds === 1) totalScore += 100;
-                else if (count === 2 && openEnds === 2) totalScore += 100;
-                else if (count === 2 && openEnds === 1) totalScore += 10;
+                // 점수 계산 (난이도 낮춤)
+                if (count >= 5) totalScore += 50000;
+                else if (count === 4 && openEnds === 2) totalScore += 5000;
+                else if (count === 4 && openEnds === 1) totalScore += 500;
+                else if (count === 3 && openEnds === 2) totalScore += 500;
+                else if (count === 3 && openEnds === 1) totalScore += 50;
+                else if (count === 2 && openEnds === 2) totalScore += 50;
+                else if (count === 2 && openEnds === 1) totalScore += 5;
             }
 
             return totalScore;
@@ -614,7 +708,6 @@
             let count = 1;
             let openEnds = 0;
 
-            // 한 방향으로 세기
             let nx = x + dx;
             let ny = y + dy;
             while (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && board[ny][nx] === player) {
@@ -626,7 +719,6 @@
                 openEnds++;
             }
 
-            // 반대 방향으로 세기
             nx = x - dx;
             ny = y - dy;
             while (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && board[ny][nx] === player) {
@@ -652,7 +744,6 @@
             for (const [dx, dy] of directions) {
                 let count = 1;
 
-                // 한 방향
                 let nx = x + dx;
                 let ny = y + dy;
                 while (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && board[ny][nx] === player) {
@@ -661,7 +752,6 @@
                     ny += dy;
                 }
 
-                // 반대 방향
                 nx = x - dx;
                 ny = y - dy;
                 while (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && board[ny][nx] === player) {
@@ -703,26 +793,7 @@
 
         function closeModalAndReset() {
             document.getElementById('winnerModal').classList.remove('active');
-            resetGame();
-        }
-
-        function resetGame() {
             initGame();
-        }
-
-        function undoMove() {
-            if (moveHistory.length < 2 || gameOver) return;
-            
-            // AI 수와 플레이어 수 둘 다 취소
-            const aiMove = moveHistory.pop();
-            const playerMove = moveHistory.pop();
-            
-            board[aiMove.y][aiMove.x] = null;
-            board[playerMove.y][playerMove.x] = null;
-            
-            currentPlayer = 'black';
-            renderBoard();
-            updateStatus();
         }
 
         // 초기화
