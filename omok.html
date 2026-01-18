@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omok - Tony An</title>
+    <style>
+        :root {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: white;
+            --bg-card: #fafafa;
+            --text-primary: #222;
+            --text-secondary: #666;
+            --text-muted: #888;
+            --border-color: #e0e0e0;
+            --accent-color: #333;
+            --hover-bg: #f0f0f0;
+            --shadow: rgba(0,0,0,0.08);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-card: #2a2a2a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #888;
+            --border-color: #404040;
+            --accent-color: #e0e0e0;
+            --hover-bg: #333;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-primary); 
+            min-height: 100vh; 
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        /* 상단바 */
+        .top-bar {
+            background: #1a1a1a;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .left-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .social-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        
+        .social-link:hover {
+            opacity: 0.8;
+        }
+        
+        .x-logo {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 5px;
+            transition: transform 0.2s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.2);
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 8px 20px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            opacity: 0.7;
+        }
+
+        .visitor-count {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-title {
+            font-size: 32px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            transition: color 0.3s;
+        }
+
+        .game-status {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            transition: color 0.3s;
+        }
+
+        .game-container {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px var(--shadow);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(15, 30px);
+            grid-template-rows: repeat(15, 30px);
+            gap: 0;
+            background: #dcb35c;
+            padding: 15px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .cell::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #a08030;
+        }
+
+        .cell::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #a08030;
+        }
+
+        .cell:hover .stone-preview {
+            opacity: 0.5;
+        }
+
+        .stone {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .stone-preview {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 5;
+            pointer-events: none;
+            background: #111;
+        }
+
+        .stone.black {
+            background: radial-gradient(circle at 30% 30%, #555, #111);
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .stone.white {
+            background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .stone.last-move {
+            box-shadow: 0 0 0 3px #e74c3c;
+        }
+
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: var(--bg-secondary);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .score-board {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: color 0.3s;
+        }
+
+        .winner-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .winner-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            animation: popIn 0.3s;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-title {
+            font-size: 36px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .modal-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .board {
+                grid-template-columns: repeat(15, 22px);
+                grid-template-rows: repeat(15, 22px);
+                padding: 10px;
+            }
+
+            .cell {
+                width: 22px;
+                height: 22px;
+            }
+
+            .stone, .stone-preview {
+                width: 18px;
+                height: 18px;
+            }
+
+            .game-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 상단바 -->
+    <div class="top-bar">
+        <div class="left-section">
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+            <a href="https://github.com/Minsu-code" target="_blank" class="social-link" title="GitHub">
+                <svg class="x-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+            </a>
+            <a href="https://x.com/KR_MSU" target="_blank" class="social-link" title="X (Twitter)">
+                <svg class="x-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+            </a>
+            <a href="index.html" class="social-link" title="Home">
+                <svg class="x-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/>
+                </svg>
+            </a>
+        </div>
+
+        <a href="project.html" class="nav-link">Project</a>
+
+        <div class="visitor-count">
+            방문자 : <span id="visitorCount">-</span>회
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <h1 class="game-title">⚫ Omok ⚪</h1>
+        <div class="game-status" id="gameStatus">Your turn (Black)</div>
+        
+        <div class="score-board">
+            <div class="score-item">
+                <div class="score-label">You (Black)</div>
+                <div class="score-value" id="playerScore">0</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">AI (White)</div>
+                <div class="score-value" id="aiScore">0</div>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <div class="board" id="board"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="resetGame()">🔄 New Game</button>
+            <button class="btn" onclick="undoMove()">↩️ Undo</button>
+        </div>
+    </div>
+
+    <!-- 승리 모달 -->
+    <div class="winner-modal" id="winnerModal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">🎉 Victory!</div>
+            <div class="modal-subtitle" id="modalSubtitle">You won!</div>
+            <button class="btn" onclick="closeModalAndReset()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const BOARD_SIZE = 15;
+        let board = [];
+        let currentPlayer = 'black';
+        let gameOver = false;
+        let moveHistory = [];
+        let playerScore = 0;
+        let aiScore = 0;
+
+        // 다크모드
+        function toggleTheme() {
+            const body = document.body;
+            const button = document.querySelector('.theme-toggle');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                button.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                button.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const button = document.querySelector('.theme-toggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                button.textContent = '☀️';
+            }
+        }
+
+        // 게임 초기화
+        function initGame() {
+            board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+            currentPlayer = 'black';
+            gameOver = false;
+            moveHistory = [];
+            renderBoard();
+            updateStatus();
+        }
+
+        function renderBoard() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+
+            for (let y = 0; y < BOARD_SIZE; y++) {
+                for (let x = 0; x < BOARD_SIZE; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    cell.onclick = () => handleClick(x, y);
+
+                    if (board[y][x]) {
+                        const stone = document.createElement('div');
+                        stone.className = `stone ${board[y][x]}`;
+                        
+                        // 마지막 수 표시
+                        if (moveHistory.length > 0) {
+                            const lastMove = moveHistory[moveHistory.length - 1];
+                            if (lastMove.x === x && lastMove.y === y) {
+                                stone.classList.add('last-move');
+                            }
+                        }
+                        cell.appendChild(stone);
+                    } else {
+                        const preview = document.createElement('div');
+                        preview.className = 'stone-preview';
+                        cell.appendChild(preview);
+                    }
+
+                    boardEl.appendChild(cell);
+                }
+            }
+        }
+
+        function handleClick(x, y) {
+            if (gameOver || board[y][x] || currentPlayer !== 'black') return;
+
+            placeStone(x, y, 'black');
+            
+            if (checkWin(x, y, 'black')) {
+                gameOver = true;
+                playerScore++;
+                document.getElementById('playerScore').textContent = playerScore;
+                showWinner('black');
+                return;
+            }
+
+            currentPlayer = 'white';
+            updateStatus();
+
+            // AI 턴
+            setTimeout(() => {
+                if (!gameOver) {
+                    aiMove();
+                }
+            }, 500);
+        }
+
+        function placeStone(x, y, player) {
+            board[y][x] = player;
+            moveHistory.push({ x, y, player });
+            renderBoard();
+        }
+
+        function aiMove() {
+            const move = findBestMove();
+            if (move) {
+                placeStone(move.x, move.y, 'white');
+                
+                if (checkWin(move.x, move.y, 'white')) {
+                    gameOver = true;
+                    aiScore++;
+                    document.getElementById('aiScore').textContent = aiScore;
+                    showWinner('white');
+                    return;
+                }
+            }
+            
+            currentPlayer = 'black';
+            updateStatus();
+        }
+
+        function findBestMove() {
+            let bestScore = -Infinity;
+            let bestMove = null;
+
+            // 빈 칸 찾기
+            const emptyCells = [];
+            for (let y = 0; y < BOARD_SIZE; y++) {
+                for (let x = 0; x < BOARD_SIZE; x++) {
+                    if (!board[y][x]) {
+                        emptyCells.push({ x, y });
+                    }
+                }
+            }
+
+            // 첫 수면 중앙 근처에 두기
+            if (moveHistory.length === 1) {
+                const center = Math.floor(BOARD_SIZE / 2);
+                const nearby = [
+                    { x: center, y: center },
+                    { x: center + 1, y: center },
+                    { x: center - 1, y: center },
+                    { x: center, y: center + 1 },
+                    { x: center, y: center - 1 }
+                ];
+                for (const pos of nearby) {
+                    if (!board[pos.y][pos.x]) {
+                        return pos;
+                    }
+                }
+            }
+
+            for (const cell of emptyCells) {
+                const score = evaluatePosition(cell.x, cell.y);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = cell;
+                }
+            }
+
+            return bestMove;
+        }
+
+        function evaluatePosition(x, y) {
+            let score = 0;
+
+            // AI 공격 점수
+            score += getLineScore(x, y, 'white') * 1.1;
+            
+            // 플레이어 방어 점수
+            score += getLineScore(x, y, 'black');
+
+            // 중앙 가까울수록 약간의 보너스
+            const center = Math.floor(BOARD_SIZE / 2);
+            const distFromCenter = Math.abs(x - center) + Math.abs(y - center);
+            score += (BOARD_SIZE - distFromCenter) * 0.1;
+
+            return score;
+        }
+
+        function getLineScore(x, y, player) {
+            const directions = [
+                [1, 0],   // 가로
+                [0, 1],   // 세로
+                [1, 1],   // 대각선 \
+                [1, -1]   // 대각선 /
+            ];
+
+            let totalScore = 0;
+
+            for (const [dx, dy] of directions) {
+                const { count, openEnds } = countLine(x, y, dx, dy, player);
+                
+                // 점수 계산
+                if (count >= 5) totalScore += 100000;
+                else if (count === 4 && openEnds === 2) totalScore += 10000;
+                else if (count === 4 && openEnds === 1) totalScore += 1000;
+                else if (count === 3 && openEnds === 2) totalScore += 1000;
+                else if (count === 3 && openEnds === 1) totalScore += 100;
+                else if (count === 2 && openEnds === 2) totalScore += 100;
+                else if (count === 2 && openEnds === 1) totalScore += 10;
+            }
+
+            return totalScore;
+        }
+
+        function countLine(x, y, dx, dy, player) {
+            let count = 1;
+            let openEnds = 0;
+
+            // 한 방향으로 세기
+            let nx = x + dx;
+            let ny = y + dy;
+            while (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && board[ny][nx] === player) {
+                count++;
+                nx += dx;
+                ny += dy;
+            }
+            if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && !board[ny][nx]) {
+                openEnds++;
+            }
+
+            // 반대 방향으로 세기
+            nx = x - dx;
+            ny = y - dy;
+            while (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && board[ny][nx] === player) {
+                count++;
+                nx -= dx;
+                ny -= dy;
+            }
+            if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && !board[ny][nx]) {
+                openEnds++;
+            }
+
+            return { count, openEnds };
+        }
+
+        function checkWin(x, y, player) {
+            const directions = [
+                [1, 0],
+                [0, 1],
+                [1, 1],
+                [1, -1]
+            ];
+
+            for (const [dx, dy] of directions) {
+                let count = 1;
+
+                // 한 방향
+                let nx = x + dx;
+                let ny = y + dy;
+                while (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && board[ny][nx] === player) {
+                    count++;
+                    nx += dx;
+                    ny += dy;
+                }
+
+                // 반대 방향
+                nx = x - dx;
+                ny = y - dy;
+                while (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && board[ny][nx] === player) {
+                    count++;
+                    nx -= dx;
+                    ny -= dy;
+                }
+
+                if (count >= 5) return true;
+            }
+
+            return false;
+        }
+
+        function updateStatus() {
+            const status = document.getElementById('gameStatus');
+            if (currentPlayer === 'black') {
+                status.textContent = 'Your turn (Black)';
+            } else {
+                status.textContent = 'AI thinking...';
+            }
+        }
+
+        function showWinner(winner) {
+            const modal = document.getElementById('winnerModal');
+            const title = document.getElementById('modalTitle');
+            const subtitle = document.getElementById('modalSubtitle');
+
+            if (winner === 'black') {
+                title.textContent = '🎉 Victory!';
+                subtitle.textContent = 'You won!';
+            } else {
+                title.textContent = '😢 Defeat';
+                subtitle.textContent = 'AI won!';
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeModalAndReset() {
+            document.getElementById('winnerModal').classList.remove('active');
+            resetGame();
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        function undoMove() {
+            if (moveHistory.length < 2 || gameOver) return;
+            
+            // AI 수와 플레이어 수 둘 다 취소
+            const aiMove = moveHistory.pop();
+            const playerMove = moveHistory.pop();
+            
+            board[aiMove.y][aiMove.x] = null;
+            board[playerMove.y][playerMove.x] = null;
+            
+            currentPlayer = 'black';
+            renderBoard();
+            updateStatus();
+        }
+
+        // 초기화
+        window.onload = function() {
+            loadTheme();
+            initGame();
+        };
+    </script>
+</body>
+</html>
