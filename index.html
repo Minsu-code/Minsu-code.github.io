@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project - Tony An</title>
+    <title>Tony An의 페이지</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -32,14 +32,10 @@
             --shadow: rgba(0,0,0,0.3);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0; 
             background: var(--bg-primary); 
             min-height: 100vh; 
             transition: background 0.3s, color 0.3s;
@@ -62,6 +58,25 @@
             display: flex;
             align-items: center;
             gap: 15px;
+        }
+
+        .visitor-count {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 8px 20px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            opacity: 0.7;
         }
         
         .social-link {
@@ -94,200 +109,387 @@
         .theme-toggle:hover {
             transform: scale(1.2);
         }
-
-        .visitor-count {
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .nav-link {
-            color: white;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 600;
-            padding: 8px 20px;
-            transition: all 0.2s;
-        }
-
-        .nav-link:hover {
-            opacity: 0.7;
-        }
         
         .main-content {
-            padding: 40px 20px;
-            max-width: 1200px;
-            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: var(--bg-secondary); 
+            border-radius: 20px; 
+            box-shadow: 0 2px 20px var(--shadow); 
+            overflow: hidden; 
+            transition: background 0.3s, box-shadow 0.3s;
         }
 
-        /* 페이지 헤더 */
-        .page-header {
-            text-align: center;
-            margin-bottom: 50px;
+        .profile-section { 
+            background: var(--bg-secondary); 
+            border-bottom: 1px solid var(--border-color); 
+            padding: 40px; 
+            text-align: center; 
+            transition: background 0.3s, border-color 0.3s;
         }
 
-        .page-header h1 {
-            font-size: 36px;
-            color: var(--text-primary);
-            margin-bottom: 10px;
+        .profile-image { 
+            width: 150px; 
+            height: 150px; 
+            border-radius: 50%; 
+            border: 3px solid var(--accent-color); 
+            margin: 0 auto 20px; 
+            background: var(--bg-card); 
+            overflow: hidden; 
+            transition: border-color 0.3s, background 0.3s;
+        }
+
+        .profile-image img { width: 100%; height: 100%; object-fit: cover; }
+
+        .profile-section h1 { 
+            margin: 10px 0; 
+            font-size: 32px; 
+            color: var(--text-primary); 
+            font-weight: 600; 
             transition: color 0.3s;
         }
 
-        .page-header p {
-            color: var(--text-secondary);
-            font-size: 16px;
+        .profile-section p { 
+            margin: 5px 0; 
+            color: var(--text-secondary); 
+            font-size: 16px; 
             transition: color 0.3s;
         }
 
-        /* 프로젝트 그리드 */
-        .project-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 30px;
-        }
-
-        /* 프로젝트 카드 */
-        .project-card {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px var(--shadow);
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .project-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 40px var(--shadow);
-        }
-
-        .project-thumbnail {
-            width: 100%;
-            height: 180px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-        }
-
-        .project-info {
-            padding: 25px;
-        }
-
-        .project-status {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
-        .status-planned {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .status-progress {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .status-complete {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        [data-theme="dark"] .status-planned {
-            background: #3d2914;
-            color: #ffb74d;
-        }
-
-        [data-theme="dark"] .status-progress {
-            background: #0d2137;
-            color: #64b5f6;
-        }
-
-        [data-theme="dark"] .status-complete {
-            background: #1b3d1f;
-            color: #81c784;
-        }
-
-        .project-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 10px;
+        .quote { 
+            font-family: 'Dancing Script', cursive; 
+            font-size: 24px; 
+            color: var(--text-secondary); 
+            margin-top: 25px; 
+            padding: 15px 20px; 
+            font-style: italic; 
             transition: color 0.3s;
         }
 
-        .project-description {
-            color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 15px;
+        .diary-section { 
+            padding: 40px; 
+        }
+
+        .diary-section h2 { 
+            color: var(--text-primary); 
+            border-bottom: 2px solid var(--accent-color); 
+            padding-bottom: 10px; 
+            margin-bottom: 30px; 
+            font-weight: 600; 
+            transition: color 0.3s, border-color 0.3s;
+        }
+
+        .diary-item { 
+            background: var(--bg-card); 
+            border-left: 4px solid var(--accent-color); 
+            padding: 20px 25px; 
+            margin-bottom: 15px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+
+        .diary-item:hover { 
+            transform: translateX(5px); 
+            box-shadow: 0 4px 12px var(--shadow); 
+            background: var(--hover-bg); 
+        }
+
+        .diary-item-left { flex: 1; }
+
+        .diary-title { 
+            color: var(--text-primary); 
+            font-weight: 600; 
+            margin-bottom: 8px; 
+            font-size: 16px; 
             transition: color 0.3s;
         }
 
-        .project-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+        .diary-meta { 
+            color: var(--text-muted); 
+            font-size: 13px; 
+            display: flex; 
+            gap: 15px; 
+            flex-wrap: wrap; 
         }
 
-        .tag {
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            transition: background 0.3s, color 0.3s;
+        .diary-meta span { display: flex; align-items: center; gap: 4px; }
+
+        .diary-arrow { 
+            color: var(--text-secondary); 
+            font-size: 20px; 
+            transition: color 0.3s;
         }
 
-        /* 빈 상태 */
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: var(--text-muted);
+        .write-btn { 
+            background: var(--accent-color); 
+            color: var(--bg-secondary); 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            margin-bottom: 25px; 
+            transition: all 0.3s; 
+            width: 100%; 
         }
 
-        .empty-state .icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
-
-        .empty-state h3 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: var(--text-secondary);
-        }
-
-        /* 홈 버튼 */
-        .home-btn {
-            display: inline-block;
-            margin-top: 30px;
-            padding: 12px 30px;
-            background: var(--accent-color);
-            color: var(--bg-secondary);
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .home-btn:hover {
+        .write-btn:hover { 
             opacity: 0.8;
         }
 
-        @media (max-width: 600px) {
-            .page-header h1 {
-                font-size: 28px;
-            }
+        .category-filter { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 
-            .project-grid {
-                grid-template-columns: 1fr;
-            }
+        .category-btn { 
+            background: var(--bg-card); 
+            border: 2px solid var(--border-color); 
+            padding: 8px 20px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            color: var(--text-secondary); 
+            transition: all 0.2s; 
+        }
+
+        .category-btn:hover { 
+            background: var(--hover-bg); 
+        }
+
+        .category-btn.active { 
+            background: var(--accent-color); 
+            color: var(--bg-secondary); 
+            border-color: var(--accent-color); 
+        }
+
+        .category-badge { 
+            display: inline-block; 
+            background: var(--bg-card); 
+            padding: 4px 12px; 
+            border-radius: 12px; 
+            font-size: 12px; 
+            color: var(--text-secondary); 
+            margin-left: 10px; 
+        }
+
+        .category-badge.stock { background: #e8f5e9; color: #2e7d32; }
+        .category-badge.coin { background: #fff3e0; color: #e65100; }
+
+        [data-theme="dark"] .category-badge.stock { background: #1b3d1f; color: #81c784; }
+        [data-theme="dark"] .category-badge.coin { background: #3d2914; color: #ffb74d; }
+
+        .write-form { 
+            background: var(--bg-card); 
+            border: 2px solid var(--border-color); 
+            border-radius: 12px; 
+            padding: 25px; 
+            margin-bottom: 25px; 
+            display: none; 
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .write-form.active { display: block; animation: fadeIn 0.3s; }
+
+        .write-form h3 { 
+            margin-top: 0; 
+            color: var(--text-primary); 
+            transition: color 0.3s;
+        }
+
+        .form-group { margin-bottom: 20px; }
+
+        .form-group label { 
+            display: block; 
+            margin-bottom: 8px; 
+            color: var(--text-secondary); 
+            font-weight: 500; 
+            font-size: 14px; 
+            transition: color 0.3s;
+        }
+
+        .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            font-size: 14px; 
+            font-family: inherit; 
+            box-sizing: border-box; 
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+
+        .form-group textarea { min-height: 150px; resize: vertical; }
+
+        .form-buttons { display: flex; gap: 10px; }
+
+        .form-buttons button { 
+            flex: 1; 
+            padding: 10px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            transition: all 0.2s; 
+        }
+
+        .submit-btn { 
+            background: var(--accent-color); 
+            color: var(--bg-secondary); 
+        }
+
+        .submit-btn:hover { opacity: 0.8; }
+
+        .cancel-btn { 
+            background: var(--border-color); 
+            color: var(--text-secondary); 
+        }
+
+        .cancel-btn:hover { opacity: 0.8; }
+
+        .diary-detail { 
+            display: none; 
+            padding: 40px; 
+            animation: fadeIn 0.3s; 
+        }
+
+        .diary-detail.active { display: block; }
+
+        .back-button { 
+            background: var(--accent-color); 
+            color: var(--bg-secondary); 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-bottom: 30px; 
+            transition: all 0.2s; 
+        }
+
+        .back-button:hover { opacity: 0.8; }
+
+        .delete-button { 
+            background: #e53935; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-bottom: 30px; 
+            margin-left: 10px; 
+            transition: background 0.2s; 
+        }
+
+        .delete-button:hover { background: #c62828; }
+
+        .detail-meta { 
+            color: var(--text-muted); 
+            font-size: 14px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            gap: 20px; 
+            flex-wrap: wrap; 
+        }
+
+        .detail-meta span { display: flex; align-items: center; gap: 5px; }
+
+        .detail-title { 
+            color: var(--text-primary); 
+            font-size: 28px; 
+            font-weight: 600; 
+            margin-bottom: 25px; 
+            transition: color 0.3s;
+        }
+
+        .detail-content { 
+            color: var(--text-secondary); 
+            line-height: 1.8; 
+            font-size: 16px; 
+            white-space: pre-wrap; 
+            transition: color 0.3s;
+        }
+
+        .detail-image { 
+            max-width: 100%; 
+            border-radius: 12px; 
+            margin-top: 20px; 
+            box-shadow: 0 2px 10px var(--shadow); 
+        }
+
+        .loading { 
+            text-align: center; 
+            padding: 40px; 
+            color: var(--text-muted); 
+        }
+
+        .hidden { display: none; }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .image-upload-area { 
+            border: 2px dashed var(--border-color); 
+            border-radius: 8px; 
+            padding: 20px; 
+            text-align: center; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            margin-top: 10px; 
+            color: var(--text-secondary);
+        }
+
+        .image-upload-area:hover { 
+            border-color: var(--accent-color); 
+            background: var(--bg-card); 
+        }
+
+        .image-upload-area.has-image { 
+            border-style: solid; 
+            border-color: #4caf50; 
+        }
+
+        .image-preview { 
+            max-width: 100%; 
+            max-height: 200px; 
+            border-radius: 8px; 
+            margin-top: 10px; 
+        }
+
+        .remove-image-btn { 
+            background: #e53935; 
+            color: white; 
+            border: none; 
+            padding: 5px 10px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            margin-top: 10px; 
+        }
+
+        .has-image-badge { 
+            display: inline-block; 
+            background: #4caf50; 
+            color: white; 
+            padding: 2px 8px; 
+            border-radius: 10px; 
+            font-size: 11px; 
+            margin-left: 8px; 
+        }
+
+        .view-count { 
+            color: var(--text-muted); 
+            font-size: 13px; 
         }
     </style>
 </head>
@@ -312,7 +514,7 @@
             </a>
         </div>
 
-        <a href="project.html" class="nav-link active">Project</a>
+        <a href="project.html" class="nav-link">Project</a>
 
         <div class="visitor-count">
             방문자 : <span id="visitorCount">0</span>회
@@ -320,26 +522,46 @@
     </div>
     
     <div class="main-content">
-        <div class="page-header">
-            <h1>My Projects</h1>
-        </div>
-
-        <div class="project-grid">
-            <!-- 개인 웹사이트 -->
-            <div class="project-card">
-                <div class="project-info">
-                    <span class="project-status status-complete">✅ Complete</span>
-                    <h3 class="project-title">Personal Website</h3>
-                    <p class="project-description">A personal website with my blog, diary, and investment records</p>
+        <div class="container">
+            <div id="profileSection" class="profile-section">
+                <div class="profile-image">
+                    <img src="https://i.ibb.co/CpBg0hNY/profile.png" alt="Profile">
                 </div>
+                <h1>Tony An</h1>
+                <p>Beginner Developer Starting to Code</p>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">📍 Seoul, South Korea</p>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">🎂 1997.01.04</p>
+                <div class="quote">"The best way to predict the future is to create it."</div>
+            </div>
+            <div id="diarySection" class="diary-section">
+                <h2>📝 일기</h2>
+                <button class="write-btn" onclick="showWriteForm('diary')">✏️ 새 일기 쓰기</button>
+                <div id="diaryListContainer"><div class="loading">불러오는 중...</div></div>
+            </div>
+            <div id="investmentSection" class="diary-section">
+                <h2>💰 투자</h2>
+                <div class="category-filter">
+                    <button class="category-btn active" onclick="filterInvestment('all')">전체</button>
+                    <button class="category-btn" onclick="filterInvestment('stock')">주식</button>
+                    <button class="category-btn" onclick="filterInvestment('coin')">코인</button>
+                </div>
+                <button class="write-btn" onclick="showWriteForm('investment')">✏️ 새 투자 글 쓰기</button>
+                <div id="investmentListContainer"><div class="loading">불러오는 중...</div></div>
+            </div>
+            <div id="diaryDetail" class="diary-detail">
+                <button class="back-button" onclick="showList()">← 목록으로</button>
+                <button class="delete-button" onclick="deletePost()">🗑️ 삭제</button>
+                <div class="detail-meta">
+                    <span id="detailDate"></span>
+                    <span id="detailViews"></span>
+                </div>
+                <div class="detail-title" id="detailTitle"></div>
+                <div class="detail-content" id="detailContent"></div>
+                <img class="detail-image hidden" id="detailImage" src="" alt="첨부 이미지">
             </div>
         </div>
-
-        <div style="text-align: center;">
-            <a href="index.html" class="home-btn">← Back to Home</a>
-        </div>
     </div>
-
+    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script>
@@ -373,25 +595,337 @@
         const firebaseConfig = { apiKey: "AIzaSyBqFDAe_mY7T8FWL-9dzjLd3yHgG_rZE6Q", authDomain: "my-website-minsu.firebaseapp.com", projectId: "my-website-minsu", storageBucket: "my-website-minsu.firebasestorage.app", messagingSenderId: "766576447022", appId: "1:766576447022:web:4b03228299fcf0f39f99bf", measurementId: "G-ND5YSMW9VH" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-
+        const ADMIN_PASSWORD = 'Dpfsleh105~';
+        let diaries = [], investments = [], investmentFilter = 'all', currentPost = null, currentPostType = null;
+        let currentImageData = null;
+        
         window.onload = function() { 
             loadTheme();
-            loadVisitorCount();
+            loadDiaries(); 
+            loadInvestments();
+            updateVisitorCount();
         };
 
-        // 방문자 수 로드 (증가 없이 표시만)
-        async function loadVisitorCount() {
+        // 방문자 수 업데이트
+        async function updateVisitorCount() {
             try {
                 const visitorRef = db.collection('stats').doc('visitors');
                 const doc = await visitorRef.get();
                 
                 if (doc.exists) {
-                    document.getElementById('visitorCount').textContent = doc.data().count || 0;
+                    const currentCount = doc.data().count || 0;
+                    await visitorRef.update({
+                        count: currentCount + 1
+                    });
+                    document.getElementById('visitorCount').textContent = currentCount + 1;
+                } else {
+                    await visitorRef.set({ count: 1 });
+                    document.getElementById('visitorCount').textContent = 1;
                 }
             } catch (error) {
                 console.log('방문자 수 로드 실패:', error);
                 document.getElementById('visitorCount').textContent = '-';
             }
+        }
+        
+        async function loadDiaries() { 
+            try { 
+                const snapshot = await db.collection('diaries').orderBy('createdAt', 'desc').get(); 
+                diaries = []; 
+                snapshot.forEach(doc => { 
+                    diaries.push({ id: doc.id, ...doc.data() }); 
+                }); 
+                renderDiaryList(); 
+            } catch (error) { 
+                document.getElementById('diaryListContainer').innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">일기를 불러오지 못했습니다.</p>'; 
+            } 
+        }
+        
+        async function loadInvestments() { 
+            try { 
+                const snapshot = await db.collection('investments').orderBy('createdAt', 'desc').get(); 
+                investments = []; 
+                snapshot.forEach(doc => { 
+                    investments.push({ id: doc.id, ...doc.data() }); 
+                }); 
+                renderInvestmentList(); 
+            } catch (error) { 
+                document.getElementById('investmentListContainer').innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">투자 글을 불러오지 못했습니다.</p>'; 
+            } 
+        }
+        
+        function renderDiaryList() { 
+            const container = document.getElementById('diaryListContainer'); 
+            container.innerHTML = ''; 
+            if (diaries.length === 0) { 
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">아직 작성된 일기가 없습니다.</p>'; 
+                return; 
+            } 
+            diaries.forEach((diary, index) => { 
+                const dateTimeFormatted = formatDateTime(diary.createdAt);
+                const views = diary.views || 0;
+                const hasImage = diary.imageData ? '<span class="has-image-badge">📷</span>' : ''; 
+                container.innerHTML += `
+                    <div class="diary-item" onclick="showPost('diary', ${index})">
+                        <div class="diary-item-left">
+                            <div class="diary-title">${diary.title}${hasImage}</div>
+                            <div class="diary-meta">
+                                <span>${dateTimeFormatted}</span>
+                                <span>조회수 ${views}</span>
+                            </div>
+                        </div>
+                        <div class="diary-arrow">→</div>
+                    </div>`; 
+            }); 
+        }
+        
+        function renderInvestmentList() { 
+            const container = document.getElementById('investmentListContainer'); 
+            container.innerHTML = ''; 
+            const filteredInvestments = investmentFilter === 'all' ? investments : investments.filter(i => i.category === investmentFilter); 
+            if (filteredInvestments.length === 0) { 
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">아직 작성된 투자 글이 없습니다.</p>'; 
+                return; 
+            } 
+            filteredInvestments.forEach((investment, index) => { 
+                const realIndex = investments.indexOf(investment); 
+                const dateTimeFormatted = formatDateTime(investment.createdAt);
+                const views = investment.views || 0;
+                const categoryText = investment.category === 'stock' ? '주식' : '코인'; 
+                const categoryClass = investment.category; 
+                const hasImage = investment.imageData ? '<span class="has-image-badge">📷</span>' : ''; 
+                container.innerHTML += `
+                    <div class="diary-item" onclick="showPost('investment', ${realIndex})">
+                        <div class="diary-item-left">
+                            <div class="diary-title">${investment.title}<span class="category-badge ${categoryClass}">${categoryText}</span>${hasImage}</div>
+                            <div class="diary-meta">
+                                <span>${dateTimeFormatted}</span>
+                                <span>조회수 ${views}</span>
+                            </div>
+                        </div>
+                        <div class="diary-arrow">→</div>
+                    </div>`; 
+            }); 
+        }
+        
+        function formatDateTime(timestamp) {
+            if (!timestamp) return 'Unknown';
+            
+            let date;
+            if (timestamp.toDate) {
+                date = timestamp.toDate();
+            } else if (timestamp.seconds) {
+                date = new Date(timestamp.seconds * 1000);
+            } else {
+                date = new Date(timestamp);
+            }
+            
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}.${month}.${day} ${hours}:${minutes}`;
+        }
+        
+        function filterInvestment(category) { 
+            investmentFilter = category; 
+            document.querySelectorAll('.category-btn').forEach(btn => { 
+                btn.classList.remove('active'); 
+            }); 
+            event.target.classList.add('active'); 
+            renderInvestmentList(); 
+        }
+        
+        function showWriteForm(type) { 
+            const password = prompt('비밀번호를 입력하세요:'); 
+            if (password !== ADMIN_PASSWORD) { 
+                alert('비밀번호가 틀렸습니다! 🚫'); 
+                return; 
+            } 
+            currentImageData = null; 
+            const existingForm = document.getElementById('writeForm'); 
+            if (existingForm) { 
+                existingForm.remove(); 
+            } 
+            const titleText = type === 'diary' ? '일기' : '투자 글'; 
+            let categorySelect = ''; 
+            if (type === 'investment') { 
+                categorySelect = '<div class="form-group"><label>카테고리</label><select id="postCategory"><option value="stock">주식</option><option value="coin">코인</option></select></div>'; 
+            } 
+            const formHtml = '<div class="write-form active" id="writeForm"><h3>✏️ 새 ' + titleText + ' 작성</h3><div class="form-group"><label>제목</label><input type="text" id="postTitle" placeholder="제목을 입력하세요"></div>' + categorySelect + '<div class="form-group"><label>내용</label><textarea id="postContent" placeholder="내용을 작성하세요..."></textarea></div><div class="form-group"><label>📷 이미지 첨부 (선택)</label><div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById(\'imageInput\').click()"><p>클릭하여 이미지 선택</p><p style="font-size:12px;color:var(--text-muted);">또는 이미지를 여기에 드래그</p></div><input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)"><div id="imagePreviewContainer"></div></div><div class="form-buttons"><button class="submit-btn" onclick="savePost(\'' + type + '\')">저장하기</button><button class="cancel-btn" onclick="hideWriteForm()">취소</button></div></div>'; 
+            const containerId = type === 'diary' ? 'diaryListContainer' : 'investmentListContainer'; 
+            document.getElementById(containerId).insertAdjacentHTML('beforebegin', formHtml); 
+            setupDragDrop(); 
+        }
+        
+        function setupDragDrop() { 
+            const area = document.getElementById('imageUploadArea'); 
+            area.addEventListener('dragover', (e) => { 
+                e.preventDefault(); 
+                area.style.borderColor = 'var(--accent-color)'; 
+                area.style.background = 'var(--hover-bg)'; 
+            }); 
+            area.addEventListener('dragleave', (e) => { 
+                e.preventDefault(); 
+                area.style.borderColor = 'var(--border-color)'; 
+                area.style.background = 'transparent'; 
+            }); 
+            area.addEventListener('drop', (e) => { 
+                e.preventDefault(); 
+                area.style.borderColor = 'var(--border-color)'; 
+                area.style.background = 'transparent'; 
+                const file = e.dataTransfer.files[0]; 
+                if (file && file.type.startsWith('image/')) { 
+                    processImage(file); 
+                } 
+            }); 
+        }
+        
+        function handleImageSelect(event) { 
+            const file = event.target.files[0]; 
+            if (file) { 
+                processImage(file); 
+            } 
+        }
+        
+        function processImage(file) { 
+            const reader = new FileReader(); 
+            reader.onload = function(e) { 
+                currentImageData = e.target.result; 
+                const container = document.getElementById('imagePreviewContainer'); 
+                container.innerHTML = '<img class="image-preview" src="' + currentImageData + '" alt="미리보기"><br><button class="remove-image-btn" onclick="removeImage()">❌ 이미지 삭제</button>'; 
+                document.getElementById('imageUploadArea').classList.add('has-image'); 
+            }; 
+            reader.readAsDataURL(file); 
+        }
+        
+        function removeImage() { 
+            currentImageData = null; 
+            document.getElementById('imagePreviewContainer').innerHTML = ''; 
+            document.getElementById('imageUploadArea').classList.remove('has-image'); 
+            document.getElementById('imageInput').value = ''; 
+        }
+        
+        function hideWriteForm() { 
+            const form = document.getElementById('writeForm'); 
+            if (form) form.remove(); 
+            currentImageData = null; 
+        }
+        
+        async function savePost(type) { 
+            const title = document.getElementById('postTitle').value; 
+            const content = document.getElementById('postContent').value; 
+            let category = null; 
+            if (type === 'investment') { 
+                category = document.getElementById('postCategory').value; 
+            } 
+            if (!title.trim()) { 
+                alert('제목을 입력해주세요!'); 
+                return; 
+            } 
+            if (!content.trim()) { 
+                alert('내용을 입력해주세요!'); 
+                return; 
+            } 
+            
+            const newPost = { 
+                title: title, 
+                content: content, 
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                views: 0
+            }; 
+            
+            if (type === 'investment') { 
+                newPost.category = category; 
+            } 
+            if (currentImageData) { 
+                newPost.imageData = currentImageData; 
+            } 
+            
+            try { 
+                const collectionName = type === 'diary' ? 'diaries' : 'investments'; 
+                await db.collection(collectionName).add(newPost); 
+                hideWriteForm(); 
+                alert('저장되었습니다! 🎉'); 
+                if (type === 'diary') { 
+                    loadDiaries(); 
+                } else { 
+                    loadInvestments(); 
+                } 
+            } catch (error) { 
+                alert('저장 중 오류가 발생했습니다: ' + error.message); 
+            } 
+        }
+        
+        async function showPost(type, index) { 
+            const post = type === 'diary' ? diaries[index] : investments[index]; 
+            currentPost = post; 
+            currentPostType = type; 
+            
+            // 조회수 증가
+            const collectionName = type === 'diary' ? 'diaries' : 'investments';
+            const currentViews = post.views || 0;
+            await db.collection(collectionName).doc(post.id).update({
+                views: currentViews + 1
+            });
+            post.views = currentViews + 1;
+            
+            document.getElementById('detailDate').innerHTML = formatDateTime(post.createdAt); 
+            document.getElementById('detailViews').innerHTML = '조회수 ' + post.views;
+            document.getElementById('detailTitle').textContent = post.title; 
+            document.getElementById('detailContent').textContent = post.content; 
+            
+            const detailImage = document.getElementById('detailImage'); 
+            if (post.imageData) { 
+                detailImage.src = post.imageData; 
+                detailImage.classList.remove('hidden'); 
+            } else { 
+                detailImage.classList.add('hidden'); 
+            } 
+            
+            document.getElementById('profileSection').classList.add('hidden'); 
+            document.getElementById('diarySection').classList.add('hidden'); 
+            document.getElementById('investmentSection').classList.add('hidden'); 
+            document.getElementById('diaryDetail').classList.add('active'); 
+        }
+        
+        async function deletePost() { 
+            const password = prompt('삭제하려면 비밀번호를 입력하세요:'); 
+            if (password !== ADMIN_PASSWORD) { 
+                alert('비밀번호가 틀렸습니다! 🚫'); 
+                return; 
+            } 
+            const confirmDelete = confirm('정말 삭제하시겠습니까?'); 
+            if (!confirmDelete) { 
+                return; 
+            } 
+            try { 
+                const collectionName = currentPostType === 'diary' ? 'diaries' : 'investments'; 
+                await db.collection(collectionName).doc(currentPost.id).delete(); 
+                alert('삭제되었습니다! 🗑️'); 
+                showList(); 
+                if (currentPostType === 'diary') { 
+                    loadDiaries(); 
+                } else { 
+                    loadInvestments(); 
+                } 
+            } catch (error) { 
+                alert('삭제 중 오류가 발생했습니다: ' + error.message); 
+            } 
+        }
+        
+        function showList() { 
+            document.getElementById('profileSection').classList.remove('hidden'); 
+            document.getElementById('diarySection').classList.remove('hidden'); 
+            document.getElementById('investmentSection').classList.remove('hidden'); 
+            document.getElementById('diaryDetail').classList.remove('active'); 
+            currentPost = null; 
+            currentPostType = null;
+            // 목록 새로고침 (조회수 업데이트 반영)
+            loadDiaries();
+            loadInvestments();
         }
     </script>
 </body>
