@@ -377,7 +377,7 @@
         }
 
         .seed-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #2a2a2a;
             border-radius: 16px;
             padding: 25px;
             display: flex;
@@ -389,7 +389,7 @@
         }
 
         [data-theme="dark"] .seed-card {
-            background: linear-gradient(135deg, #434a6b 0%, #4a3562 100%);
+            background: #1a1a1a;
         }
 
         .seed-info {
@@ -434,8 +434,8 @@
         }
 
         .seed-btn.add {
-            background: white;
-            color: #667eea;
+            background: #4caf50;
+            color: white;
         }
 
         .seed-btn.remove {
@@ -444,7 +444,7 @@
         }
 
         .seed-btn.exchange {
-            background: rgba(255,215,0,0.3);
+            background: #ff9800;
             color: white;
         }
 
@@ -455,6 +455,19 @@
 
         .seed-btn:hover {
             transform: scale(1.05);
+        }
+
+        .rate-edit-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.2s;
+        }
+
+        .rate-edit-btn:hover {
+            transform: scale(1.2);
         }
 
         .exchange-rate-card {
@@ -502,6 +515,53 @@
             margin-bottom: 15px;
             color: var(--text-secondary);
             font-size: 14px;
+        }
+
+        /* 통계 헤더 */
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stats-title {
+            font-size: 18px;
+            color: var(--text-primary);
+            margin: 0;
+            transition: color 0.3s;
+        }
+
+        .period-filter {
+            display: flex;
+            gap: 5px;
+            background: var(--bg-secondary);
+            padding: 5px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .period-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .period-btn:hover {
+            background: var(--hover-bg);
+        }
+
+        .period-btn.active {
+            background: var(--accent-color);
+            color: var(--bg-secondary);
         }
 
         .seed-history-container {
@@ -758,7 +818,8 @@
                 <div class="rate-label">💱 Exchange Rate</div>
                 <div class="rate-input-group">
                     <span>$1 = ₩</span>
-                    <input type="number" id="exchangeRate" value="1450" step="0.01" onchange="saveExchangeRate(); updateCurrentSeed();">
+                    <input type="number" id="exchangeRate" value="1450" step="0.01" readonly>
+                    <button class="rate-edit-btn" onclick="editExchangeRate()">✏️</button>
                 </div>
             </div>
         </div>
@@ -789,6 +850,16 @@
         </div>
 
         <!-- 통계 -->
+        <div class="stats-header">
+            <h2 class="stats-title">📈 Statistics</h2>
+            <div class="period-filter">
+                <button class="period-btn active" onclick="setPeriod('all')">All</button>
+                <button class="period-btn" onclick="setPeriod('day')">Day</button>
+                <button class="period-btn" onclick="setPeriod('week')">Week</button>
+                <button class="period-btn" onclick="setPeriod('month')">Month</button>
+                <button class="period-btn" onclick="setPeriod('year')">Year</button>
+            </div>
+        </div>
         <div class="stats-container">
             <div class="stat-card">
                 <div class="stat-label">Total Trades</div>
@@ -979,6 +1050,7 @@
         let seedHistory = [];
         let currentSeedType = 'add';
         let currentTradeId = null;
+        let currentPeriod = 'all';
         const ADMIN_PASSWORD = 'Dpfsleh105~';
 
         // 거래 상세 보기
@@ -1160,10 +1232,13 @@
 
         // 통계 업데이트
         function updateStats() {
+            // 기간별 필터링
+            const filteredTrades = getFilteredTradesByPeriod(trades);
+            
             // 종목별 매매 그룹화
             const tradesByTicker = {};
             
-            trades.forEach(trade => {
+            filteredTrades.forEach(trade => {
                 if (!tradesByTicker[trade.ticker]) {
                     tradesByTicker[trade.ticker] = { buys: [], sells: [] };
                 }
@@ -1203,7 +1278,7 @@
             });
 
             // UI 업데이트
-            document.getElementById('totalTrades').textContent = trades.length;
+            document.getElementById('totalTrades').textContent = filteredTrades.length;
             
             const winRate = completedTrades > 0 ? Math.round((winningTrades / completedTrades) * 100) : 0;
             document.getElementById('winRate').textContent = winRate + '%';
@@ -1537,6 +1612,66 @@
             if (savedRate) {
                 document.getElementById('exchangeRate').value = savedRate;
             }
+        }
+
+        function editExchangeRate() {
+            const password = prompt('비밀번호를 입력하세요:');
+            if (password !== ADMIN_PASSWORD) {
+                alert('비밀번호가 틀렸습니다! 🚫');
+                return;
+            }
+            
+            const currentRate = document.getElementById('exchangeRate').value;
+            const newRate = prompt('새 환율을 입력하세요 ($1 = ₩):', currentRate);
+            
+            if (newRate && !isNaN(parseFloat(newRate))) {
+                document.getElementById('exchangeRate').value = parseFloat(newRate);
+                saveExchangeRate();
+                updateCurrentSeed();
+            }
+        }
+
+        // 기간 필터
+        function setPeriod(period) {
+            currentPeriod = period;
+            
+            // 버튼 활성화 상태 변경
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            updateStats();
+        }
+
+        function getFilteredTradesByPeriod(tradesArray) {
+            if (currentPeriod === 'all') return tradesArray;
+            
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            return tradesArray.filter(trade => {
+                const tradeDate = new Date(trade.date);
+                
+                switch(currentPeriod) {
+                    case 'day':
+                        return tradeDate >= today;
+                    case 'week':
+                        const weekAgo = new Date(today);
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        return tradeDate >= weekAgo;
+                    case 'month':
+                        const monthAgo = new Date(today);
+                        monthAgo.setMonth(monthAgo.getMonth() - 1);
+                        return tradeDate >= monthAgo;
+                    case 'year':
+                        const yearAgo = new Date(today);
+                        yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+                        return tradeDate >= yearAgo;
+                    default:
+                        return true;
+                }
+            });
         }
 
         async function deleteSeedRecord(id) {
