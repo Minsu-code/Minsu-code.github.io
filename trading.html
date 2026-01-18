@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Journal - Tony An</title>
+    <style>
+        :root {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: white;
+            --bg-card: #fafafa;
+            --text-primary: #222;
+            --text-secondary: #666;
+            --text-muted: #888;
+            --border-color: #e0e0e0;
+            --accent-color: #333;
+            --hover-bg: #f0f0f0;
+            --shadow: rgba(0,0,0,0.08);
+            --profit-color: #e53935;
+            --loss-color: #1e88e5;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-card: #2a2a2a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #888;
+            --border-color: #404040;
+            --accent-color: #e0e0e0;
+            --hover-bg: #333;
+            --shadow: rgba(0,0,0,0.3);
+            --profit-color: #ef5350;
+            --loss-color: #42a5f5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-primary); 
+            min-height: 100vh; 
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        /* 상단바 */
+        .top-bar {
+            background: #1a1a1a;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .left-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .social-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        
+        .social-link:hover {
+            opacity: 0.8;
+        }
+        
+        .x-logo {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 5px;
+            transition: transform 0.2s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.2);
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 8px 20px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            opacity: 0.7;
+        }
+
+        .visitor-count {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            padding: 30px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 28px;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+            text-align: center;
+            transition: color 0.3s;
+        }
+
+        /* 통계 카드 */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px var(--shadow);
+            transition: background 0.3s;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: color 0.3s;
+        }
+
+        .stat-value.profit {
+            color: var(--profit-color);
+        }
+
+        .stat-value.loss {
+            color: var(--loss-color);
+        }
+
+        /* 입력 폼 */
+        .form-container {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px var(--shadow);
+            transition: background 0.3s;
+        }
+
+        .form-title {
+            font-size: 18px;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            transition: color 0.3s;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            transition: color 0.3s;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: var(--bg-secondary);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn-container {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 테이블 */
+        .table-container {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 2px 10px var(--shadow);
+            overflow-x: auto;
+            transition: background 0.3s;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .table-title {
+            font-size: 18px;
+            color: var(--text-primary);
+            transition: color 0.3s;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all 0.3s;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            transition: border-color 0.3s;
+        }
+
+        th {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg-card);
+        }
+
+        td {
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: color 0.3s;
+        }
+
+        tr:hover {
+            background: var(--hover-bg);
+        }
+
+        .type-buy {
+            color: var(--profit-color);
+            font-weight: 500;
+        }
+
+        .type-sell {
+            color: var(--loss-color);
+            font-weight: 500;
+        }
+
+        .profit-positive {
+            color: var(--profit-color);
+            font-weight: 600;
+        }
+
+        .profit-negative {
+            color: var(--loss-color);
+            font-weight: 600;
+        }
+
+        .memo-cell {
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+
+        .delete-btn:hover {
+            color: #e53935;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        /* 시드머니 */
+        .seed-container {
+            margin-bottom: 30px;
+        }
+
+        .seed-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        [data-theme="dark"] .seed-card {
+            background: linear-gradient(135deg, #434a6b 0%, #4a3562 100%);
+        }
+
+        .seed-info {
+            color: white;
+        }
+
+        .seed-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .seed-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .seed-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .seed-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .seed-btn.add {
+            background: white;
+            color: #667eea;
+        }
+
+        .seed-btn.remove {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .seed-btn.history {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .seed-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .seed-history-container {
+            margin-bottom: 30px;
+        }
+
+        .type-add {
+            color: var(--profit-color);
+            font-weight: 500;
+        }
+
+        .type-remove {
+            color: var(--loss-color);
+            font-weight: 500;
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-title {
+            font-size: 20px;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            transition: color 0.3s;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons .btn {
+            flex: 1;
+        }
+
+        .modal-buttons .btn.cancel {
+            background: var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        /* 반응형 */
+        @media (max-width: 600px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 상단바 -->
+    <div class="top-bar">
+        <div class="left-section">
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+            <a href="https://github.com/Minsu-code" target="_blank" class="social-link" title="GitHub">
+                <svg class="x-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+            </a>
+            <a href="https://x.com/KR_MSU" target="_blank" class="social-link" title="X (Twitter)">
+                <svg class="x-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+            </a>
+            <a href="index.html" class="social-link" title="Home">
+                <svg class="x-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/>
+                </svg>
+            </a>
+        </div>
+
+        <a href="project.html" class="nav-link">Project</a>
+
+        <div class="visitor-count">
+            방문자 : <span id="visitorCount">-</span>회
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <h1 class="page-title">📊 Trading Journal</h1>
+
+        <!-- 시드머니 관리 -->
+        <div class="seed-container">
+            <div class="seed-card">
+                <div class="seed-info">
+                    <div class="seed-label">💰 Seed Money</div>
+                    <div class="seed-value" id="currentSeed">₩0</div>
+                </div>
+                <div class="seed-actions">
+                    <button class="seed-btn add" onclick="openSeedModal('add')">+ Add</button>
+                    <button class="seed-btn remove" onclick="openSeedModal('remove')">- Remove</button>
+                    <button class="seed-btn history" onclick="toggleSeedHistory()">📋 History</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 시드머니 히스토리 -->
+        <div class="seed-history-container" id="seedHistoryContainer" style="display: none;">
+            <div class="table-container">
+                <div class="table-header">
+                    <h2 class="table-title">💰 Seed Money History</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Memo</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="seedTableBody">
+                        <tr>
+                            <td colspan="5" class="empty-message">No seed money records yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 통계 -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-label">Total Trades</div>
+                <div class="stat-value" id="totalTrades">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Win Rate</div>
+                <div class="stat-value" id="winRate">0%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Profit</div>
+                <div class="stat-value" id="totalProfit">₩0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Return</div>
+                <div class="stat-value" id="avgReturn">0%</div>
+            </div>
+        </div>
+
+        <!-- 입력 폼 -->
+        <div class="form-container">
+            <h2 class="form-title">✏️ New Trade</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="tradeDate">
+                </div>
+                <div class="form-group">
+                    <label>Ticker</label>
+                    <input type="text" id="ticker" placeholder="ex) AAPL, 삼성전자">
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="tradeType">
+                        <option value="buy">Buy</option>
+                        <option value="sell">Sell</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" id="quantity" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="number" id="price" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="category">
+                        <option value="stock">Stock</option>
+                        <option value="coin">Coin</option>
+                        <option value="etf">ETF</option>
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label>Memo</label>
+                    <textarea id="memo" placeholder="Why did you make this trade?"></textarea>
+                </div>
+            </div>
+            <div class="btn-container">
+                <button class="btn" onclick="addTrade()">Add Trade</button>
+            </div>
+        </div>
+
+        <!-- 매매 기록 테이블 -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="table-title">📋 Trade History</h2>
+                <div class="filter-group">
+                    <select id="filterCategory" onchange="renderTrades()">
+                        <option value="all">All Categories</option>
+                        <option value="stock">Stock</option>
+                        <option value="coin">Coin</option>
+                        <option value="etf">ETF</option>
+                    </select>
+                    <select id="filterType" onchange="renderTrades()">
+                        <option value="all">All Types</option>
+                        <option value="buy">Buy</option>
+                        <option value="sell">Sell</option>
+                    </select>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Ticker</th>
+                        <th>Type</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th>Category</th>
+                        <th>Memo</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tradeTableBody">
+                    <tr>
+                        <td colspan="9" class="empty-message">No trades yet. Start logging your trades!</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 시드머니 모달 -->
+    <div class="modal" id="seedModal">
+        <div class="modal-content">
+            <h3 class="modal-title" id="seedModalTitle">Add Seed Money</h3>
+            <div class="form-group">
+                <label>Amount (₩)</label>
+                <input type="number" id="seedAmount" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label>Memo</label>
+                <input type="text" id="seedMemo" placeholder="ex) Monthly salary, Withdrawal...">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="saveSeedMoney()">Save</button>
+                <button class="btn cancel" onclick="closeSeedModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script>
+        // Firebase 설정
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBqFDAe_mY7T8FWL-9dzjLd3yHgG_rZE6Q", 
+            authDomain: "my-website-minsu.firebaseapp.com", 
+            projectId: "my-website-minsu", 
+            storageBucket: "my-website-minsu.firebasestorage.app", 
+            messagingSenderId: "766576447022", 
+            appId: "1:766576447022:web:4b03228299fcf0f39f99bf", 
+            measurementId: "G-ND5YSMW9VH" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let trades = [];
+        let seedHistory = [];
+        let currentSeedType = 'add';
+
+        // 다크모드
+        function toggleTheme() {
+            const body = document.body;
+            const button = document.querySelector('.theme-toggle');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                button.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                button.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const button = document.querySelector('.theme-toggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                button.textContent = '☀️';
+            }
+        }
+
+        // 오늘 날짜 기본값
+        function setDefaultDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('tradeDate').value = today;
+        }
+
+        // 매매 추가
+        async function addTrade() {
+            const date = document.getElementById('tradeDate').value;
+            const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+            const type = document.getElementById('tradeType').value;
+            const quantity = parseFloat(document.getElementById('quantity').value);
+            const price = parseFloat(document.getElementById('price').value);
+            const category = document.getElementById('category').value;
+            const memo = document.getElementById('memo').value.trim();
+
+            if (!date || !ticker || !quantity || !price) {
+                alert('Please fill in all required fields!');
+                return;
+            }
+
+            const trade = {
+                date,
+                ticker,
+                type,
+                quantity,
+                price,
+                total: quantity * price,
+                category,
+                memo,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('trades').add(trade);
+                
+                // 폼 초기화
+                document.getElementById('ticker').value = '';
+                document.getElementById('quantity').value = '';
+                document.getElementById('price').value = '';
+                document.getElementById('memo').value = '';
+                
+                loadTrades();
+            } catch (error) {
+                alert('Error saving trade: ' + error.message);
+            }
+        }
+
+        // 매매 기록 불러오기
+        async function loadTrades() {
+            try {
+                const snapshot = await db.collection('trades').orderBy('date', 'desc').get();
+                trades = [];
+                snapshot.forEach(doc => {
+                    trades.push({ id: doc.id, ...doc.data() });
+                });
+                renderTrades();
+                updateStats();
+            } catch (error) {
+                console.log('Error loading trades:', error);
+            }
+        }
+
+        // 매매 기록 렌더링
+        function renderTrades() {
+            const tbody = document.getElementById('tradeTableBody');
+            const categoryFilter = document.getElementById('filterCategory').value;
+            const typeFilter = document.getElementById('filterType').value;
+
+            let filteredTrades = trades;
+
+            if (categoryFilter !== 'all') {
+                filteredTrades = filteredTrades.filter(t => t.category === categoryFilter);
+            }
+            if (typeFilter !== 'all') {
+                filteredTrades = filteredTrades.filter(t => t.type === typeFilter);
+            }
+
+            if (filteredTrades.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-message">No trades found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredTrades.map(trade => `
+                <tr>
+                    <td>${trade.date}</td>
+                    <td><strong>${trade.ticker}</strong></td>
+                    <td class="${trade.type === 'buy' ? 'type-buy' : 'type-sell'}">${trade.type.toUpperCase()}</td>
+                    <td>${trade.quantity.toLocaleString()}</td>
+                    <td>₩${trade.price.toLocaleString()}</td>
+                    <td>₩${trade.total.toLocaleString()}</td>
+                    <td>${trade.category.toUpperCase()}</td>
+                    <td class="memo-cell" title="${trade.memo}">${trade.memo || '-'}</td>
+                    <td><button class="delete-btn" onclick="deleteTrade('${trade.id}')">🗑️</button></td>
+                </tr>
+            `).join('');
+        }
+
+        // 매매 삭제
+        async function deleteTrade(id) {
+            if (!confirm('Delete this trade?')) return;
+
+            try {
+                await db.collection('trades').doc(id).delete();
+                loadTrades();
+            } catch (error) {
+                alert('Error deleting trade: ' + error.message);
+            }
+        }
+
+        // 통계 업데이트
+        function updateStats() {
+            // 종목별 매매 그룹화
+            const tradesByTicker = {};
+            
+            trades.forEach(trade => {
+                if (!tradesByTicker[trade.ticker]) {
+                    tradesByTicker[trade.ticker] = { buys: [], sells: [] };
+                }
+                if (trade.type === 'buy') {
+                    tradesByTicker[trade.ticker].buys.push(trade);
+                } else {
+                    tradesByTicker[trade.ticker].sells.push(trade);
+                }
+            });
+
+            let totalProfit = 0;
+            let completedTrades = 0;
+            let winningTrades = 0;
+            let totalReturn = 0;
+
+            // 완료된 거래 계산 (매수 + 매도 있는 경우)
+            Object.keys(tradesByTicker).forEach(ticker => {
+                const { buys, sells } = tradesByTicker[ticker];
+                
+                if (buys.length > 0 && sells.length > 0) {
+                    const avgBuyPrice = buys.reduce((sum, t) => sum + t.price * t.quantity, 0) / buys.reduce((sum, t) => sum + t.quantity, 0);
+                    const avgSellPrice = sells.reduce((sum, t) => sum + t.price * t.quantity, 0) / sells.reduce((sum, t) => sum + t.quantity, 0);
+                    const soldQty = Math.min(
+                        buys.reduce((sum, t) => sum + t.quantity, 0),
+                        sells.reduce((sum, t) => sum + t.quantity, 0)
+                    );
+                    
+                    const profit = (avgSellPrice - avgBuyPrice) * soldQty;
+                    const returnPct = ((avgSellPrice - avgBuyPrice) / avgBuyPrice) * 100;
+                    
+                    totalProfit += profit;
+                    totalReturn += returnPct;
+                    completedTrades++;
+                    
+                    if (profit > 0) winningTrades++;
+                }
+            });
+
+            // UI 업데이트
+            document.getElementById('totalTrades').textContent = trades.length;
+            
+            const winRate = completedTrades > 0 ? Math.round((winningTrades / completedTrades) * 100) : 0;
+            document.getElementById('winRate').textContent = winRate + '%';
+            
+            const profitEl = document.getElementById('totalProfit');
+            profitEl.textContent = (totalProfit >= 0 ? '+' : '') + '₩' + Math.round(totalProfit).toLocaleString();
+            profitEl.className = 'stat-value ' + (totalProfit >= 0 ? 'profit' : 'loss');
+            
+            const avgReturn = completedTrades > 0 ? (totalReturn / completedTrades).toFixed(1) : 0;
+            const avgReturnEl = document.getElementById('avgReturn');
+            avgReturnEl.textContent = (avgReturn >= 0 ? '+' : '') + avgReturn + '%';
+            avgReturnEl.className = 'stat-value ' + (avgReturn >= 0 ? 'profit' : 'loss');
+        }
+
+        // 방문자 수 로드
+        async function loadVisitorCount() {
+            try {
+                const visitorRef = db.collection('stats').doc('visitors');
+                const doc = await visitorRef.get();
+                
+                if (doc.exists) {
+                    document.getElementById('visitorCount').textContent = doc.data().count || 0;
+                }
+            } catch (error) {
+                document.getElementById('visitorCount').textContent = '-';
+            }
+        }
+
+        // 초기화
+        window.onload = function() {
+            loadTheme();
+            setDefaultDate();
+            loadTrades();
+            loadSeedHistory();
+            loadVisitorCount();
+        };
+
+        // 시드머니 모달
+        function openSeedModal(type) {
+            currentSeedType = type;
+            document.getElementById('seedModalTitle').textContent = type === 'add' ? '💰 Add Seed Money' : '💸 Remove Seed Money';
+            document.getElementById('seedAmount').value = '';
+            document.getElementById('seedMemo').value = '';
+            document.getElementById('seedModal').classList.add('active');
+        }
+
+        function closeSeedModal() {
+            document.getElementById('seedModal').classList.remove('active');
+        }
+
+        async function saveSeedMoney() {
+            const amount = parseFloat(document.getElementById('seedAmount').value);
+            const memo = document.getElementById('seedMemo').value.trim();
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount!');
+                return;
+            }
+
+            const record = {
+                type: currentSeedType,
+                amount: currentSeedType === 'add' ? amount : -amount,
+                displayAmount: amount,
+                memo,
+                date: new Date().toISOString().split('T')[0],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('seedMoney').add(record);
+                closeSeedModal();
+                loadSeedHistory();
+            } catch (error) {
+                alert('Error saving: ' + error.message);
+            }
+        }
+
+        async function loadSeedHistory() {
+            try {
+                const snapshot = await db.collection('seedMoney').orderBy('createdAt', 'desc').get();
+                seedHistory = [];
+                snapshot.forEach(doc => {
+                    seedHistory.push({ id: doc.id, ...doc.data() });
+                });
+                renderSeedHistory();
+                updateCurrentSeed();
+            } catch (error) {
+                console.log('Error loading seed history:', error);
+            }
+        }
+
+        function renderSeedHistory() {
+            const tbody = document.getElementById('seedTableBody');
+
+            if (seedHistory.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-message">No seed money records yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = seedHistory.map(record => `
+                <tr>
+                    <td>${record.date}</td>
+                    <td class="${record.type === 'add' ? 'type-add' : 'type-remove'}">${record.type === 'add' ? '+ ADD' : '- REMOVE'}</td>
+                    <td>₩${record.displayAmount.toLocaleString()}</td>
+                    <td class="memo-cell" title="${record.memo}">${record.memo || '-'}</td>
+                    <td><button class="delete-btn" onclick="deleteSeedRecord('${record.id}')">🗑️</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function updateCurrentSeed() {
+            const total = seedHistory.reduce((sum, record) => sum + record.amount, 0);
+            document.getElementById('currentSeed').textContent = '₩' + total.toLocaleString();
+        }
+
+        async function deleteSeedRecord(id) {
+            if (!confirm('Delete this record?')) return;
+
+            try {
+                await db.collection('seedMoney').doc(id).delete();
+                loadSeedHistory();
+            } catch (error) {
+                alert('Error deleting: ' + error.message);
+            }
+        }
+
+        function toggleSeedHistory() {
+            const container = document.getElementById('seedHistoryContainer');
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>
