@@ -385,6 +385,7 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 20px;
+            margin-bottom: 15px;
         }
 
         [data-theme="dark"] .seed-card {
@@ -402,21 +403,31 @@
         }
 
         .seed-value {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
+        }
+
+        .seed-value.krw {
+            font-size: 24px;
+        }
+
+        .seed-krw {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 5px;
         }
 
         .seed-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .seed-btn {
-            padding: 10px 20px;
+            padding: 8px 14px;
             border: none;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
@@ -432,6 +443,11 @@
             color: white;
         }
 
+        .seed-btn.exchange {
+            background: rgba(255,215,0,0.3);
+            color: white;
+        }
+
         .seed-btn.history {
             background: rgba(255,255,255,0.2);
             color: white;
@@ -439,6 +455,53 @@
 
         .seed-btn:hover {
             transform: scale(1.05);
+        }
+
+        .exchange-rate-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px var(--shadow);
+            transition: background 0.3s;
+        }
+
+        .rate-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .rate-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .rate-input-group input {
+            width: 100px;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            text-align: right;
+            transition: all 0.3s;
+        }
+
+        .exchange-preview {
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            font-size: 14px;
         }
 
         .seed-history-container {
@@ -452,6 +515,11 @@
 
         .type-remove {
             color: var(--loss-color);
+            font-weight: 500;
+        }
+
+        .type-exchange {
+            color: #ff9800;
             font-weight: 500;
         }
 
@@ -667,13 +735,30 @@
         <div class="seed-container">
             <div class="seed-card">
                 <div class="seed-info">
-                    <div class="seed-label">💰 Seed Money</div>
+                    <div class="seed-label">💰 Seed Money (USD)</div>
                     <div class="seed-value" id="currentSeed">$0</div>
+                    <div class="seed-krw" id="currentSeedKRW">≈ ₩0</div>
+                </div>
+                <div class="seed-info">
+                    <div class="seed-label">💴 Seed Money (KRW)</div>
+                    <div class="seed-value krw" id="currentSeedKRWOnly">₩0</div>
+                    <div class="seed-krw" id="currentSeedKRWtoUSD">≈ $0</div>
                 </div>
                 <div class="seed-actions">
-                    <button class="seed-btn add" onclick="openSeedModal('add')">+ Add</button>
-                    <button class="seed-btn remove" onclick="openSeedModal('remove')">- Remove</button>
-                    <button class="seed-btn history" onclick="toggleSeedHistory()">📋 History</button>
+                    <button class="seed-btn add" onclick="openSeedModal('add_usd')">+ USD</button>
+                    <button class="seed-btn add" onclick="openSeedModal('add_krw')">+ KRW</button>
+                    <button class="seed-btn remove" onclick="openSeedModal('remove_usd')">- USD</button>
+                    <button class="seed-btn remove" onclick="openSeedModal('remove_krw')">- KRW</button>
+                    <button class="seed-btn exchange" onclick="openSeedModal('krw_to_usd')">₩→$</button>
+                    <button class="seed-btn exchange" onclick="openSeedModal('usd_to_krw')">$→₩</button>
+                    <button class="seed-btn history" onclick="toggleSeedHistory()">📋</button>
+                </div>
+            </div>
+            <div class="exchange-rate-card">
+                <div class="rate-label">💱 Exchange Rate</div>
+                <div class="rate-input-group">
+                    <span>$1 = ₩</span>
+                    <input type="number" id="exchangeRate" value="1450" step="0.01" onchange="saveExchangeRate(); updateCurrentSeed();">
                 </div>
             </div>
         </div>
@@ -812,13 +897,20 @@
     <div class="modal" id="seedModal">
         <div class="modal-content">
             <h3 class="modal-title" id="seedModalTitle">Add Seed Money</h3>
-            <div class="form-group">
-                <label>Amount ($)</label>
+            <div class="form-group" id="amountGroup">
+                <label id="amountLabel">Amount ($)</label>
                 <input type="number" id="seedAmount" placeholder="0" step="0.01">
+            </div>
+            <div class="form-group" id="rateGroup" style="display: none;">
+                <label>Exchange Rate ($1 = ₩)</label>
+                <input type="number" id="seedExchangeRate" placeholder="1450" step="0.01">
             </div>
             <div class="form-group">
                 <label>Memo</label>
                 <input type="text" id="seedMemo" placeholder="ex) Monthly salary, Withdrawal...">
+            </div>
+            <div class="exchange-preview" id="exchangePreview" style="display: none;">
+                <span id="previewText">$0 → ₩0</span>
             </div>
             <div class="modal-buttons">
                 <button class="btn" onclick="saveSeedMoney()">Save</button>
@@ -1143,6 +1235,7 @@
         // 초기화
         window.onload = function() {
             loadTheme();
+            loadExchangeRate();
             setDefaultDate();
             loadTrades();
             loadSeedHistory();
@@ -1157,10 +1250,69 @@
                 return;
             }
             currentSeedType = type;
-            document.getElementById('seedModalTitle').textContent = type === 'add' ? '💰 Add Seed Money' : '💸 Remove Seed Money';
+            
+            const titleEl = document.getElementById('seedModalTitle');
+            const labelEl = document.getElementById('amountLabel');
+            const rateGroup = document.getElementById('rateGroup');
+            const previewEl = document.getElementById('exchangePreview');
+            const rateInput = document.getElementById('seedExchangeRate');
+            
+            rateInput.value = document.getElementById('exchangeRate').value;
+            rateGroup.style.display = 'none';
+            previewEl.style.display = 'none';
+            
+            switch(type) {
+                case 'add_usd':
+                    titleEl.textContent = '💵 Add USD';
+                    labelEl.textContent = 'Amount ($)';
+                    break;
+                case 'add_krw':
+                    titleEl.textContent = '💴 Add KRW';
+                    labelEl.textContent = 'Amount (₩)';
+                    break;
+                case 'remove_usd':
+                    titleEl.textContent = '💸 Remove USD';
+                    labelEl.textContent = 'Amount ($)';
+                    break;
+                case 'remove_krw':
+                    titleEl.textContent = '💸 Remove KRW';
+                    labelEl.textContent = 'Amount (₩)';
+                    break;
+                case 'krw_to_usd':
+                    titleEl.textContent = '💱 KRW → USD';
+                    labelEl.textContent = 'KRW Amount (₩)';
+                    rateGroup.style.display = 'block';
+                    previewEl.style.display = 'block';
+                    break;
+                case 'usd_to_krw':
+                    titleEl.textContent = '💱 USD → KRW';
+                    labelEl.textContent = 'USD Amount ($)';
+                    rateGroup.style.display = 'block';
+                    previewEl.style.display = 'block';
+                    break;
+            }
+            
             document.getElementById('seedAmount').value = '';
             document.getElementById('seedMemo').value = '';
             document.getElementById('seedModal').classList.add('active');
+            
+            // 환전 미리보기 업데이트
+            document.getElementById('seedAmount').oninput = updateExchangePreview;
+            document.getElementById('seedExchangeRate').oninput = updateExchangePreview;
+        }
+
+        function updateExchangePreview() {
+            const amount = parseFloat(document.getElementById('seedAmount').value) || 0;
+            const rate = parseFloat(document.getElementById('seedExchangeRate').value) || 1450;
+            const previewEl = document.getElementById('previewText');
+            
+            if (currentSeedType === 'krw_to_usd') {
+                const usd = amount / rate;
+                previewEl.textContent = `₩${amount.toLocaleString()} → $${usd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            } else if (currentSeedType === 'usd_to_krw') {
+                const krw = amount * rate;
+                previewEl.textContent = `$${amount.toLocaleString()} → ₩${krw.toLocaleString()}`;
+            }
         }
 
         function closeSeedModal() {
@@ -1170,20 +1322,69 @@
         async function saveSeedMoney() {
             const amount = parseFloat(document.getElementById('seedAmount').value);
             const memo = document.getElementById('seedMemo').value.trim();
+            const exchangeRate = parseFloat(document.getElementById('seedExchangeRate').value) || parseFloat(document.getElementById('exchangeRate').value);
 
             if (!amount || amount <= 0) {
                 alert('Please enter a valid amount!');
                 return;
             }
 
-            const record = {
-                type: currentSeedType,
-                amount: currentSeedType === 'add' ? amount : -amount,
-                displayAmount: amount,
+            let record = {
                 memo,
                 date: new Date().toISOString().split('T')[0],
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
+
+            switch(currentSeedType) {
+                case 'add_usd':
+                    record.type = 'add_usd';
+                    record.amountUSD = amount;
+                    record.amountKRW = 0;
+                    record.displayAmount = amount;
+                    record.displayCurrency = 'USD';
+                    break;
+                case 'add_krw':
+                    record.type = 'add_krw';
+                    record.amountUSD = 0;
+                    record.amountKRW = amount;
+                    record.displayAmount = amount;
+                    record.displayCurrency = 'KRW';
+                    break;
+                case 'remove_usd':
+                    record.type = 'remove_usd';
+                    record.amountUSD = -amount;
+                    record.amountKRW = 0;
+                    record.displayAmount = amount;
+                    record.displayCurrency = 'USD';
+                    break;
+                case 'remove_krw':
+                    record.type = 'remove_krw';
+                    record.amountUSD = 0;
+                    record.amountKRW = -amount;
+                    record.displayAmount = amount;
+                    record.displayCurrency = 'KRW';
+                    break;
+                case 'krw_to_usd':
+                    const usdAmount = amount / exchangeRate;
+                    record.type = 'krw_to_usd';
+                    record.amountUSD = usdAmount;
+                    record.amountKRW = -amount;
+                    record.displayAmount = amount;
+                    record.displayCurrency = 'KRW';
+                    record.exchangeRate = exchangeRate;
+                    record.convertedAmount = usdAmount;
+                    break;
+                case 'usd_to_krw':
+                    const krwAmount = amount * exchangeRate;
+                    record.type = 'usd_to_krw';
+                    record.amountUSD = -amount;
+                    record.amountKRW = krwAmount;
+                    record.displayAmount = amount;
+                    record.displayCurrency = 'USD';
+                    record.exchangeRate = exchangeRate;
+                    record.convertedAmount = krwAmount;
+                    break;
+            }
 
             try {
                 await db.collection('seedMoney').add(record);
@@ -1216,22 +1417,78 @@
                 return;
             }
 
-            tbody.innerHTML = seedHistory.map(record => `
+            tbody.innerHTML = seedHistory.map(record => {
+                let typeText = '';
+                let typeClass = '';
+                let amountText = '';
+                
+                switch(record.type) {
+                    case 'add_usd':
+                        typeText = '+ USD';
+                        typeClass = 'type-add';
+                        amountText = '$' + record.displayAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        break;
+                    case 'add_krw':
+                        typeText = '+ KRW';
+                        typeClass = 'type-add';
+                        amountText = '₩' + record.displayAmount.toLocaleString();
+                        break;
+                    case 'remove_usd':
+                        typeText = '- USD';
+                        typeClass = 'type-remove';
+                        amountText = '$' + record.displayAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        break;
+                    case 'remove_krw':
+                        typeText = '- KRW';
+                        typeClass = 'type-remove';
+                        amountText = '₩' + record.displayAmount.toLocaleString();
+                        break;
+                    case 'krw_to_usd':
+                        typeText = '₩→$';
+                        typeClass = 'type-exchange';
+                        amountText = '₩' + record.displayAmount.toLocaleString() + ' → $' + record.convertedAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        break;
+                    case 'usd_to_krw':
+                        typeText = '$→₩';
+                        typeClass = 'type-exchange';
+                        amountText = '$' + record.displayAmount.toLocaleString() + ' → ₩' + record.convertedAmount.toLocaleString();
+                        break;
+                    default:
+                        // 기존 데이터 호환
+                        typeText = record.type === 'add' ? '+ ADD' : '- REMOVE';
+                        typeClass = record.type === 'add' ? 'type-add' : 'type-remove';
+                        amountText = '$' + (record.displayAmount || Math.abs(record.amount)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                }
+                
+                return `
                 <tr>
                     <td>${record.date}</td>
-                    <td class="${record.type === 'add' ? 'type-add' : record.type === 'remove' ? 'type-remove' : (record.amount >= 0 ? 'type-add' : 'type-remove')}">${record.type === 'add' ? '+ ADD' : record.type === 'remove' ? '- REMOVE' : (record.amount >= 0 ? '+ PROFIT' : '- LOSS')}</td>
-                    <td>$${record.displayAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td class="${typeClass}">${typeText}</td>
+                    <td>${amountText}</td>
                     <td class="memo-cell" title="${record.memo}">${record.memo || '-'}</td>
                     <td><button class="delete-btn" onclick="deleteSeedRecord('${record.id}')">🗑️</button></td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         function updateCurrentSeed() {
-            // 시드머니 입출금 합계
-            const seedTotal = seedHistory.reduce((sum, record) => sum + record.amount, 0);
+            const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 1450;
             
-            // 완료된 트레이드 수익/손실 계산
+            // 시드머니 USD/KRW 합계
+            let seedUSD = 0;
+            let seedKRW = 0;
+            
+            seedHistory.forEach(record => {
+                if (record.amountUSD !== undefined) {
+                    seedUSD += record.amountUSD || 0;
+                    seedKRW += record.amountKRW || 0;
+                } else {
+                    // 기존 데이터 호환 (USD로 처리)
+                    seedUSD += record.amount || 0;
+                }
+            });
+            
+            // 완료된 트레이드 수익/손실 계산 (USD)
             const tradesByTicker = {};
             trades.forEach(trade => {
                 if (!tradesByTicker[trade.ticker]) {
@@ -1258,8 +1515,28 @@
                 }
             });
 
-            const total = seedTotal + tradeProfit;
-            document.getElementById('currentSeed').textContent = '$' + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            const totalUSD = seedUSD + tradeProfit;
+            const totalKRW = seedKRW;
+            
+            // USD 표시
+            document.getElementById('currentSeed').textContent = '$' + totalUSD.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('currentSeedKRW').textContent = '≈ ₩' + Math.round(totalUSD * exchangeRate).toLocaleString();
+            
+            // KRW 표시
+            document.getElementById('currentSeedKRWOnly').textContent = '₩' + totalKRW.toLocaleString();
+            document.getElementById('currentSeedKRWtoUSD').textContent = '≈ $' + (totalKRW / exchangeRate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+        
+        function saveExchangeRate() {
+            const rate = document.getElementById('exchangeRate').value;
+            localStorage.setItem('exchangeRate', rate);
+        }
+        
+        function loadExchangeRate() {
+            const savedRate = localStorage.getItem('exchangeRate');
+            if (savedRate) {
+                document.getElementById('exchangeRate').value = savedRate;
+            }
         }
 
         async function deleteSeedRecord(id) {
