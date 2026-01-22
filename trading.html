@@ -395,6 +395,23 @@
 
         .seed-info {
             color: white;
+            position: relative;
+        }
+
+        .cash-edit-btn {
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px;
+            transition: transform 0.2s;
+            position: absolute;
+            top: 0;
+            right: -25px;
+        }
+
+        .cash-edit-btn:hover {
+            transform: scale(1.2);
         }
 
         .seed-label {
@@ -918,9 +935,9 @@
                     <div class="seed-krw" id="currentSeedKRW">≈ ₩0</div>
                 </div>
                 <div class="seed-info">
-                    <div class="seed-label">💴 Seed Money (KRW)</div>
-                    <div class="seed-value krw" id="currentSeedKRWOnly">₩0</div>
-                    <div class="seed-krw" id="currentSeedKRWtoUSD">≈ $0</div>
+                    <div class="seed-label">💵 Cash (USD)</div>
+                    <div class="seed-value" id="currentCash">$0</div>
+                    <button class="cash-edit-btn" onclick="editCash()">✏️</button>
                 </div>
                 <div class="seed-actions">
                     <button class="seed-btn add" onclick="openSeedModal('add_usd')">+ USD</button>
@@ -1620,6 +1637,7 @@
             loadExchangeRate();
             setDefaultDate();
             await loadCurrentPrices();
+            await loadCashBalance();
             loadTrades();
             loadSeedHistory();
             loadVisitorCount();
@@ -1854,21 +1872,53 @@
             `}).join('');
         }
 
+        // 보유 현금 변수
+        let manualCashUSD = null;
+
+        // 보유 현금 로드
+        async function loadCashBalance() {
+            try {
+                const doc = await db.collection('settings').doc('cashBalance').get();
+                if (doc.exists) {
+                    manualCashUSD = doc.data().amount;
+                }
+            } catch (error) {
+                console.log('Error loading cash balance:', error);
+            }
+        }
+
+        // 보유 현금 저장
+        async function saveCashBalance(amount) {
+            try {
+                await db.collection('settings').doc('cashBalance').set({
+                    amount: amount,
+                    updatedAt: new Date().toISOString()
+                });
+                manualCashUSD = amount;
+            } catch (error) {
+                console.log('Error saving cash balance:', error);
+            }
+        }
+
+        // 보유 현금 수정
+        function editCash() {
+            const password = prompt('비밀번호를 입력하세요:');
+            if (password !== ADMIN_PASSWORD) {
+                alert('비밀번호가 틀렸습니다! 🚫');
+                return;
+            }
+            
+            const currentCash = manualCashUSD || 0;
+            const newCash = prompt('보유 현금을 입력하세요 ($):', currentCash);
+            
+            if (newCash !== null && !isNaN(parseFloat(newCash))) {
+                saveCashBalance(parseFloat(newCash));
+                updateCurrentSeed();
+            }
+        }
+
         function updateCurrentSeed() {
             const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 1450;
-            
-            // 시드머니 USD/KRW 합계 (입출금 내역만)
-            let depositedUSD = 0;
-            let seedKRW = 0;
-            
-            seedHistory.forEach(record => {
-                if (record.amountUSD !== undefined) {
-                    depositedUSD += record.amountUSD || 0;
-                    seedKRW += record.amountKRW || 0;
-                } else {
-                    depositedUSD += record.amount || 0;
-                }
-            });
             
             // 현재 보유 주식 계산
             const holdings = {};
@@ -1900,57 +1950,18 @@
                 }
             });
             
-            // 실현 손익 계산 (매도한 것들의 이익/손실)
-            let realizedProfit = 0;
-            const tickerData = {};
+            // 보유 현금 (직접 설정한 값 사용)
+            const availableCash = manualCashUSD || 0;
             
-            // 먼저 매수 정보 수집
-            trades.forEach(trade => {
-                if (!tickerData[trade.ticker]) {
-                    tickerData[trade.ticker] = { buyQty: 0, buyTotal: 0, sellQty: 0, sellTotal: 0 };
-                }
-                if (trade.type === 'buy') {
-                    tickerData[trade.ticker].buyQty += trade.quantity;
-                    tickerData[trade.ticker].buyTotal += trade.quantity * trade.price;
-                } else {
-                    tickerData[trade.ticker].sellQty += trade.quantity;
-                    tickerData[trade.ticker].sellTotal += trade.quantity * trade.price;
-                }
-            });
-            
-            // 매도한 수량에 대해 실현 손익 계산
-            Object.values(tickerData).forEach(data => {
-                if (data.sellQty > 0 && data.buyQty > 0) {
-                    const avgBuyPrice = data.buyTotal / data.buyQty;
-                    const avgSellPrice = data.sellTotal / data.sellQty;
-                    realizedProfit += (avgSellPrice - avgBuyPrice) * data.sellQty;
-                }
-            });
-            
-            // 매수에 사용한 총 금액 (아직 보유중인 것만)
-            let investedCash = 0;
-            Object.values(holdings).forEach(h => {
-                if (h.quantity > 0.0001) {
-                    const totalBought = h.buyTrades.reduce((sum, t) => sum + t.quantity, 0);
-                    const avgPrice = h.buyTrades.reduce((sum, t) => sum + t.price * t.quantity, 0) / totalBought;
-                    investedCash += h.quantity * avgPrice;
-                }
-            });
-            
-            // 보유 현금 = 입금액 - 현재 투자 원금 + 실현 손익
-            const availableCash = depositedUSD - investedCash + realizedProfit;
-            
-            // 총 자산 = 보유 현금 + 포트폴리오 현재 평가금
+            // 총 자산 = 보유 현금 + 포트폴리오 평가금
             const totalAssetUSD = availableCash + portfolioValue;
-            const totalKRW = seedKRW;
             
-            // USD 표시 (총 자산)
+            // Cash 표시
+            document.getElementById('currentCash').textContent = '$' + availableCash.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            // Total Assets 표시
             document.getElementById('currentSeed').textContent = '$' + totalAssetUSD.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('currentSeedKRW').textContent = '≈ ₩' + Math.round(totalAssetUSD * exchangeRate).toLocaleString();
-            
-            // KRW 표시
-            document.getElementById('currentSeedKRWOnly').textContent = '₩' + totalKRW.toLocaleString();
-            document.getElementById('currentSeedKRWtoUSD').textContent = '≈ $' + (totalKRW / exchangeRate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
         
         function saveExchangeRate() {
