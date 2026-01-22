@@ -261,6 +261,7 @@
             box-shadow: 0 2px 10px var(--shadow);
             overflow-x: auto;
             transition: background 0.3s;
+            margin-bottom: 30px;
         }
 
         .table-header {
@@ -583,6 +584,115 @@
             font-weight: 500;
         }
 
+        /* 포트폴리오 섹션 */
+        .portfolio-container {
+            margin-bottom: 30px;
+        }
+
+        .portfolio-table-container {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 2px 10px var(--shadow);
+            overflow-x: auto;
+            transition: background 0.3s;
+        }
+
+        .portfolio-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        .portfolio-table th,
+        .portfolio-table td {
+            padding: 12px 10px;
+            text-align: right;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .portfolio-table th:first-child,
+        .portfolio-table td:first-child {
+            text-align: left;
+        }
+
+        .portfolio-table th {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            text-transform: uppercase;
+        }
+
+        .portfolio-table td {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .portfolio-table tbody tr:hover {
+            background: var(--hover-bg);
+        }
+
+        .portfolio-ticker-cell {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .current-price-cell {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 5px;
+        }
+
+        .current-price-input {
+            width: 90px;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        .current-price-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .price-edit-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            transition: transform 0.2s;
+            opacity: 0.7;
+        }
+
+        .price-edit-btn:hover {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .portfolio-empty {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        .portfolio-total-row {
+            font-weight: 600;
+            background: var(--bg-card);
+        }
+
+        .portfolio-total-row td {
+            padding-top: 15px;
+            padding-bottom: 15px;
+            font-size: 15px;
+        }
+
         /* 모달 */
         .modal {
             display: none;
@@ -756,6 +866,14 @@
             .page-title {
                 font-size: 24px;
             }
+
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .portfolio-summary {
+                grid-template-columns: 1fr 1fr;
+            }
         }
     </style>
 </head>
@@ -795,7 +913,7 @@
         <div class="seed-container">
             <div class="seed-card">
                 <div class="seed-info">
-                    <div class="seed-label">💰 Seed Money (USD)</div>
+                    <div class="seed-label">💰 Total Assets (USD)</div>
                     <div class="seed-value" id="currentSeed">$0</div>
                     <div class="seed-krw" id="currentSeedKRW">≈ ₩0</div>
                 </div>
@@ -921,6 +1039,34 @@
             </div>
             <div class="btn-container">
                 <button class="btn" onclick="addTrade()">Add Trade</button>
+            </div>
+        </div>
+
+        <!-- 포트폴리오 섹션 -->
+        <div class="portfolio-container">
+            <div class="portfolio-table-container">
+                <div class="table-header">
+                    <h2 class="table-title">💼 Portfolio</h2>
+                </div>
+                <table class="portfolio-table">
+                    <thead>
+                        <tr>
+                            <th>Ticker</th>
+                            <th>Return %</th>
+                            <th>Profit</th>
+                            <th>Avg Price</th>
+                            <th>Current Price</th>
+                            <th>Quantity</th>
+                            <th>Value</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolioTableBody">
+                        <tr>
+                            <td colspan="8" class="portfolio-empty">No holdings yet. Start buying to build your portfolio!</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -1052,6 +1198,160 @@
         let currentTradeId = null;
         let currentPeriod = 'all';
         const ADMIN_PASSWORD = 'Dpfsleh105~';
+
+        // 현재가 저장소
+        let currentPrices = {};
+
+        // 현재가 로드
+        async function loadCurrentPrices() {
+            try {
+                const snapshot = await db.collection('currentPrices').get();
+                currentPrices = {};
+                snapshot.forEach(doc => {
+                    currentPrices[doc.id] = doc.data().price;
+                });
+            } catch (error) {
+                console.log('Error loading current prices:', error);
+            }
+        }
+
+        // 현재가 저장
+        async function saveCurrentPrice(ticker, price) {
+            try {
+                await db.collection('currentPrices').doc(ticker).set({ 
+                    price: price,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                currentPrices[ticker] = price;
+            } catch (error) {
+                console.log('Error saving current price:', error);
+            }
+        }
+
+        // 현재가 수정
+        function editCurrentPrice(ticker) {
+            const password = prompt('비밀번호를 입력하세요:');
+            if (password !== ADMIN_PASSWORD) {
+                alert('비밀번호가 틀렸습니다! 🚫');
+                return;
+            }
+            
+            const currentPrice = currentPrices[ticker] || 0;
+            const newPrice = prompt(`${ticker}의 현재가를 입력하세요 ($):`, currentPrice);
+            
+            if (newPrice !== null && !isNaN(parseFloat(newPrice))) {
+                saveCurrentPrice(ticker, parseFloat(newPrice));
+                updatePortfolio();
+                updateCurrentSeed(); // 시드머니도 업데이트
+            }
+        }
+
+        // 포트폴리오 계산 및 렌더링
+        function updatePortfolio() {
+            const holdings = {};
+            
+            // 종목별 보유량 계산
+            trades.forEach(trade => {
+                if (!holdings[trade.ticker]) {
+                    holdings[trade.ticker] = {
+                        ticker: trade.ticker,
+                        category: trade.category,
+                        quantity: 0,
+                        totalCost: 0,
+                        buyTrades: [],
+                        sellTrades: []
+                    };
+                }
+                
+                if (trade.type === 'buy') {
+                    holdings[trade.ticker].quantity += trade.quantity;
+                    holdings[trade.ticker].totalCost += trade.quantity * trade.price;
+                    holdings[trade.ticker].buyTrades.push(trade);
+                } else {
+                    holdings[trade.ticker].quantity -= trade.quantity;
+                    // 매도 시 원금에서 비례 차감
+                    const avgCost = holdings[trade.ticker].totalCost / (holdings[trade.ticker].quantity + trade.quantity);
+                    holdings[trade.ticker].totalCost -= trade.quantity * avgCost;
+                    holdings[trade.ticker].sellTrades.push(trade);
+                }
+            });
+            
+            // 보유 중인 종목만 필터링 (수량 > 0)
+            const activeHoldings = Object.values(holdings).filter(h => h.quantity > 0.0001);
+            
+            const tbody = document.getElementById('portfolioTableBody');
+            
+            if (activeHoldings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="portfolio-empty">No holdings yet. Start buying to build your portfolio!</td></tr>';
+                return;
+            }
+            
+            // 각 종목 계산
+            let totalCost = 0;
+            let totalValue = 0;
+            
+            activeHoldings.forEach(h => {
+                const totalBought = h.buyTrades.reduce((sum, t) => sum + t.quantity, 0);
+                h.avgPrice = h.buyTrades.reduce((sum, t) => sum + t.price * t.quantity, 0) / totalBought;
+                h.cost = h.quantity * h.avgPrice; // 원금
+                h.currentPrice = currentPrices[h.ticker] || h.avgPrice; // 현재가 (없으면 평균매수가)
+                h.value = h.quantity * h.currentPrice; // 평가금
+                h.profit = h.value - h.cost; // 수익금
+                h.returnPct = ((h.currentPrice - h.avgPrice) / h.avgPrice) * 100; // 수익률
+                
+                totalCost += h.cost;
+                totalValue += h.value;
+            });
+            
+            // 평가금 기준 내림차순 정렬
+            activeHoldings.sort((a, b) => b.value - a.value);
+            
+            // 테이블 렌더링
+            let html = activeHoldings.map(h => `
+                <tr>
+                    <td class="portfolio-ticker-cell">${h.ticker}</td>
+                    <td class="${h.returnPct >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        ${h.returnPct >= 0 ? '+' : ''}${h.returnPct.toFixed(2)}%
+                    </td>
+                    <td class="${h.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        ${h.profit >= 0 ? '+' : ''}$${h.profit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    </td>
+                    <td>$${h.avgPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td>
+                        <div class="current-price-cell">
+                            <span>$${h.currentPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                            <button class="price-edit-btn" onclick="editCurrentPrice('${h.ticker}')" title="Edit price">✏️</button>
+                        </div>
+                    </td>
+                    <td>${h.quantity.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 4})}</td>
+                    <td>$${h.value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td>$${h.cost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                </tr>
+            `).join('');
+            
+            // 합계 행 추가
+            const totalProfit = totalValue - totalCost;
+            const totalReturnPct = totalCost > 0 ? ((totalValue - totalCost) / totalCost) * 100 : 0;
+            
+            html += `
+                <tr class="portfolio-total-row">
+                    <td><strong>TOTAL</strong></td>
+                    <td class="${totalReturnPct >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        ${totalReturnPct >= 0 ? '+' : ''}${totalReturnPct.toFixed(2)}%
+                    </td>
+                    <td class="${totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        ${totalProfit >= 0 ? '+' : ''}$${totalProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    </td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td><strong>$${totalValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
+                    <td><strong>$${totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
+                </tr>
+            `;
+            
+            tbody.innerHTML = html;
+        }
 
         // 거래 상세 보기
         function openTradeDetail(id) {
@@ -1191,6 +1491,7 @@
                 renderTrades();
                 updateStats();
                 updateCurrentSeed();
+                updatePortfolio();
             } catch (error) {
                 console.log('Error loading trades:', error);
             }
@@ -1308,10 +1609,11 @@
         }
 
         // 초기화
-        window.onload = function() {
+        window.onload = async function() {
             loadTheme();
             loadExchangeRate();
             setDefaultDate();
+            await loadCurrentPrices();
             loadTrades();
             loadSeedHistory();
             loadVisitorCount();
@@ -1549,7 +1851,7 @@
         function updateCurrentSeed() {
             const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 1450;
             
-            // 시드머니 USD/KRW 합계
+            // 시드머니 USD/KRW 합계 (입출금 내역)
             let seedUSD = 0;
             let seedKRW = 0;
             
@@ -1563,39 +1865,58 @@
                 }
             });
             
-            // 완료된 트레이드 수익/손실 계산 (USD)
-            const tradesByTicker = {};
+            // 매매에 따른 현금 변동 계산
+            let cashFromTrades = 0;
             trades.forEach(trade => {
-                if (!tradesByTicker[trade.ticker]) {
-                    tradesByTicker[trade.ticker] = { buys: [], sells: [] };
-                }
                 if (trade.type === 'buy') {
-                    tradesByTicker[trade.ticker].buys.push(trade);
+                    // 매수: 현금 감소
+                    cashFromTrades -= trade.quantity * trade.price;
                 } else {
-                    tradesByTicker[trade.ticker].sells.push(trade);
+                    // 매도: 현금 증가
+                    cashFromTrades += trade.quantity * trade.price;
                 }
             });
-
-            let tradeProfit = 0;
-            Object.keys(tradesByTicker).forEach(ticker => {
-                const { buys, sells } = tradesByTicker[ticker];
-                if (buys.length > 0 && sells.length > 0) {
-                    const avgBuyPrice = buys.reduce((sum, t) => sum + t.price * t.quantity, 0) / buys.reduce((sum, t) => sum + t.quantity, 0);
-                    const avgSellPrice = sells.reduce((sum, t) => sum + t.price * t.quantity, 0) / sells.reduce((sum, t) => sum + t.quantity, 0);
-                    const soldQty = Math.min(
-                        buys.reduce((sum, t) => sum + t.quantity, 0),
-                        sells.reduce((sum, t) => sum + t.quantity, 0)
-                    );
-                    tradeProfit += (avgSellPrice - avgBuyPrice) * soldQty;
+            
+            // 현재 보유 주식의 평가금 계산
+            const holdings = {};
+            trades.forEach(trade => {
+                if (!holdings[trade.ticker]) {
+                    holdings[trade.ticker] = {
+                        ticker: trade.ticker,
+                        quantity: 0,
+                        totalCost: 0,
+                        buyTrades: []
+                    };
+                }
+                
+                if (trade.type === 'buy') {
+                    holdings[trade.ticker].quantity += trade.quantity;
+                    holdings[trade.ticker].totalCost += trade.quantity * trade.price;
+                    holdings[trade.ticker].buyTrades.push(trade);
+                } else {
+                    holdings[trade.ticker].quantity -= trade.quantity;
                 }
             });
-
-            const totalUSD = seedUSD + tradeProfit;
+            
+            let portfolioValue = 0;
+            Object.values(holdings).forEach(h => {
+                if (h.quantity > 0.0001) {
+                    // 현재가가 있으면 현재가로, 없으면 평균매수가로 계산
+                    const totalBought = h.buyTrades.reduce((sum, t) => sum + t.quantity, 0);
+                    const avgPrice = h.buyTrades.reduce((sum, t) => sum + t.price * t.quantity, 0) / totalBought;
+                    const currentPrice = currentPrices[h.ticker] || avgPrice;
+                    portfolioValue += h.quantity * currentPrice;
+                }
+            });
+            
+            // 총 자산 = 입금한 시드머니 + 매매로 인한 현금 변동 + 현재 포트폴리오 평가금
+            const availableCash = seedUSD + cashFromTrades; // 현재 보유 현금
+            const totalAssetUSD = availableCash + portfolioValue; // 총 자산 (현금 + 주식)
             const totalKRW = seedKRW;
             
-            // USD 표시
-            document.getElementById('currentSeed').textContent = '$' + totalUSD.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('currentSeedKRW').textContent = '≈ ₩' + Math.round(totalUSD * exchangeRate).toLocaleString();
+            // USD 표시 (총 자산)
+            document.getElementById('currentSeed').textContent = '$' + totalAssetUSD.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('currentSeedKRW').textContent = '≈ ₩' + Math.round(totalAssetUSD * exchangeRate).toLocaleString();
             
             // KRW 표시
             document.getElementById('currentSeedKRWOnly').textContent = '₩' + totalKRW.toLocaleString();
