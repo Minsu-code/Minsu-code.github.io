@@ -590,6 +590,40 @@
             color: var(--text-muted);
             font-size: 16px;
         }
+
+        /* 페이지네이션 스타일 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover {
+            background: var(--hover-bg);
+        }
+
+        .page-btn.active {
+            background: var(--accent-color);
+            color: var(--bg-secondary);
+            border-color: var(--accent-color);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -638,30 +672,27 @@
                 <div class="quote">"The best way to predict the future is to create it."</div>
             </div>
             <div id="diarySection" class="diary-section">
-                <h2>📝 일기</h2>
-                <button class="write-btn" onclick="showWriteForm('diary')">✏️ 새 일기 쓰기</button>
+                <h2>일기</h2>
+                <button class="write-btn" onclick="showWriteForm('diary')">작성</button>
                 <div id="diaryListContainer"><div class="loading">불러오는 중...</div></div>
+                <div class="pagination" id="diaryPagination"></div>
             </div>
             <div id="investmentSection" class="diary-section">
-                <h2>💰 투자</h2>
+                <h2>투자</h2>
                 <div class="category-filter">
                     <button class="category-btn active" onclick="filterInvestment('all')">전체</button>
                     <button class="category-btn" onclick="filterInvestment('stock')">주식</button>
                     <button class="category-btn" onclick="filterInvestment('coin')">코인</button>
                 </div>
-                <button class="write-btn" onclick="showWriteForm('investment')">✏️ 새 투자 글 쓰기</button>
+                <button class="write-btn" onclick="showWriteForm('investment')">작성</button>
                 <div id="investmentListContainer"><div class="loading">불러오는 중...</div></div>
+                <div class="pagination" id="investmentPagination"></div>
             </div>
             <div id="studySection" class="diary-section">
-                <h2>📚 공부 <span class="lock-icon" onclick="unlockStudy()">🔒</span></h2>
-                <div id="studyLocked" class="locked-message">
-                    <p>🔐 비밀번호로 잠겨 있습니다</p>
-                    <button class="unlock-btn" onclick="unlockStudy()">🔓 잠금 해제</button>
-                </div>
-                <div id="studyUnlocked" class="hidden">
-                    <button class="write-btn" onclick="showWriteForm('study')">✏️ 새 공부 글 쓰기</button>
-                    <div id="studyListContainer"><div class="loading">불러오는 중...</div></div>
-                </div>
+                <h2>공부 <span class="lock-icon" onclick="unlockStudy()">🔒</span></h2>
+                <button class="write-btn" onclick="showWriteForm('study')">작성</button>
+                <div id="studyListContainer"><div class="loading">불러오는 중...</div></div>
+                <div class="pagination" id="studyPagination"></div>
             </div>
             <div id="diaryDetail" class="diary-detail">
                 <button class="back-button" onclick="showList()">← 목록으로</button>
@@ -716,6 +747,10 @@
         let currentImageData = null;
         let isEditMode = false;
         let isStudyUnlocked = false;
+        
+        // 페이지네이션
+        const ITEMS_PER_PAGE = 5;
+        let diaryPage = 1, investmentPage = 1, studyPage = 1;
         
         window.onload = function() { 
             loadTheme();
@@ -793,26 +828,32 @@
                 return;
             }
             isStudyUnlocked = true;
-            document.getElementById('studyLocked').classList.add('hidden');
-            document.getElementById('studyUnlocked').classList.remove('hidden');
             document.querySelector('#studySection .lock-icon').textContent = '🔓';
         }
 
         function renderStudyList() { 
             const container = document.getElementById('studyListContainer'); 
+            const paginationContainer = document.getElementById('studyPagination');
             container.innerHTML = ''; 
+            paginationContainer.innerHTML = '';
             
             if (studies.length === 0) { 
                 container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">아직 작성된 공부 글이 없습니다.</p>'; 
                 return; 
             } 
             
-            studies.forEach((study, index) => { 
+            const totalPages = Math.ceil(studies.length / ITEMS_PER_PAGE);
+            const startIndex = (studyPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const pageItems = studies.slice(startIndex, endIndex);
+            
+            pageItems.forEach((study, idx) => { 
+                const index = startIndex + idx;
                 const dateTimeFormatted = formatDateTime(study.createdAt);
                 const views = study.views || 0;
                 const hasImage = study.imageData ? '<span class="has-image-badge">📷</span>' : ''; 
                 container.innerHTML += `
-                    <div class="study-item" onclick="showPost('study', ${index})">
+                    <div class="study-item" onclick="showStudyPost(${index})">
                         <div class="diary-item-left">
                             <div class="diary-title">${study.title}${hasImage}</div>
                             <div class="diary-meta">
@@ -820,19 +861,82 @@
                                 <span>조회수 ${views}</span>
                             </div>
                         </div>
-                        <div class="diary-arrow">→</div>
+                        <div class="diary-arrow">🔒</div>
                     </div>`; 
-            }); 
+            });
+            
+            if (totalPages > 1) {
+                renderPagination(paginationContainer, totalPages, studyPage, 'study');
+            }
+        }
+
+        function showStudyPost(index) {
+            if (!isStudyUnlocked) {
+                const password = prompt('비밀번호를 입력하세요:');
+                if (password !== ADMIN_PASSWORD) {
+                    alert('비밀번호가 틀렸습니다! 🚫');
+                    return;
+                }
+                isStudyUnlocked = true;
+                document.querySelector('#studySection .lock-icon').textContent = '🔓';
+            }
+            showPost('study', index);
+        }
+
+        function renderPagination(container, totalPages, currentPage, type) {
+            let html = '';
+            
+            // 이전 버튼
+            html += `<button class="page-btn" onclick="goToPage('${type}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
+            
+            // 페이지 번호
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    html += `<button class="page-btn active">${i}</button>`;
+                } else if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    html += `<button class="page-btn" onclick="goToPage('${type}', ${i})">${i}</button>`;
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    html += `<span style="padding: 8px 5px; color: var(--text-muted);">...</span>`;
+                }
+            }
+            
+            // 다음 버튼
+            html += `<button class="page-btn" onclick="goToPage('${type}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>→</button>`;
+            
+            container.innerHTML = html;
+        }
+
+        function goToPage(type, page) {
+            if (type === 'diary') {
+                diaryPage = page;
+                renderDiaryList();
+            } else if (type === 'investment') {
+                investmentPage = page;
+                renderInvestmentList();
+            } else if (type === 'study') {
+                studyPage = page;
+                renderStudyList();
+            }
         }
         
         function renderDiaryList() { 
             const container = document.getElementById('diaryListContainer'); 
+            const paginationContainer = document.getElementById('diaryPagination');
             container.innerHTML = ''; 
+            paginationContainer.innerHTML = '';
+            
             if (diaries.length === 0) { 
                 container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">아직 작성된 일기가 없습니다.</p>'; 
                 return; 
             } 
-            diaries.forEach((diary, index) => { 
+            
+            const totalPages = Math.ceil(diaries.length / ITEMS_PER_PAGE);
+            const startIndex = (diaryPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const pageItems = diaries.slice(startIndex, endIndex);
+            
+            pageItems.forEach((diary, idx) => { 
+                const index = startIndex + idx;
                 const dateTimeFormatted = formatDateTime(diary.createdAt);
                 const views = diary.views || 0;
                 const hasImage = diary.imageData ? '<span class="has-image-badge">📷</span>' : ''; 
@@ -847,18 +951,31 @@
                         </div>
                         <div class="diary-arrow">→</div>
                     </div>`; 
-            }); 
+            });
+            
+            if (totalPages > 1) {
+                renderPagination(paginationContainer, totalPages, diaryPage, 'diary');
+            }
         }
         
         function renderInvestmentList() { 
             const container = document.getElementById('investmentListContainer'); 
+            const paginationContainer = document.getElementById('investmentPagination');
             container.innerHTML = ''; 
+            paginationContainer.innerHTML = '';
+            
             const filteredInvestments = investmentFilter === 'all' ? investments : investments.filter(i => i.category === investmentFilter); 
             if (filteredInvestments.length === 0) { 
                 container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">아직 작성된 투자 글이 없습니다.</p>'; 
                 return; 
             } 
-            filteredInvestments.forEach((investment, index) => { 
+            
+            const totalPages = Math.ceil(filteredInvestments.length / ITEMS_PER_PAGE);
+            const startIndex = (investmentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const pageItems = filteredInvestments.slice(startIndex, endIndex);
+            
+            pageItems.forEach((investment, idx) => { 
                 const realIndex = investments.indexOf(investment); 
                 const dateTimeFormatted = formatDateTime(investment.createdAt);
                 const views = investment.views || 0;
@@ -876,7 +993,11 @@
                         </div>
                         <div class="diary-arrow">→</div>
                     </div>`; 
-            }); 
+            });
+            
+            if (totalPages > 1) {
+                renderPagination(paginationContainer, totalPages, investmentPage, 'investment');
+            }
         }
         
         function formatDateTime(timestamp) {
@@ -901,7 +1022,8 @@
         }
         
         function filterInvestment(category) { 
-            investmentFilter = category; 
+            investmentFilter = category;
+            investmentPage = 1; // 페이지 초기화
             document.querySelectorAll('.category-btn').forEach(btn => { 
                 btn.classList.remove('active'); 
             }); 
