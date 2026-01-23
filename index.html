@@ -506,6 +506,90 @@
             color: var(--text-muted); 
             font-size: 13px; 
         }
+
+        /* 공부 섹션 잠금 스타일 */
+        .lock-icon {
+            cursor: pointer;
+            font-size: 20px;
+            margin-left: 10px;
+            transition: transform 0.2s;
+        }
+
+        .lock-icon:hover {
+            transform: scale(1.2);
+        }
+
+        .locked-message {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            color: var(--text-muted);
+        }
+
+        .locked-message p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .unlock-btn {
+            background: var(--accent-color);
+            color: var(--bg-secondary);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .unlock-btn:hover {
+            opacity: 0.8;
+        }
+
+        .study-item {
+            background: var(--bg-card);
+            border-left: 4px solid #9c27b0;
+            padding: 20px 25px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .study-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px var(--shadow);
+            background: var(--hover-bg);
+        }
+
+        .study-item .diary-title {
+            color: var(--text-primary);
+        }
+
+        .study-locked-item {
+            background: var(--bg-card);
+            border-left: 4px solid #9c27b0;
+            padding: 20px 25px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0.7;
+        }
+
+        .study-locked-item .diary-title {
+            color: var(--text-primary);
+        }
+
+        .study-locked-item .lock-badge {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -568,6 +652,17 @@
                 <button class="write-btn" onclick="showWriteForm('investment')">✏️ 새 투자 글 쓰기</button>
                 <div id="investmentListContainer"><div class="loading">불러오는 중...</div></div>
             </div>
+            <div id="studySection" class="diary-section">
+                <h2>📚 공부 <span class="lock-icon" onclick="unlockStudy()">🔒</span></h2>
+                <div id="studyLocked" class="locked-message">
+                    <p>🔐 비밀번호로 잠겨 있습니다</p>
+                    <button class="unlock-btn" onclick="unlockStudy()">🔓 잠금 해제</button>
+                </div>
+                <div id="studyUnlocked" class="hidden">
+                    <button class="write-btn" onclick="showWriteForm('study')">✏️ 새 공부 글 쓰기</button>
+                    <div id="studyListContainer"><div class="loading">불러오는 중...</div></div>
+                </div>
+            </div>
             <div id="diaryDetail" class="diary-detail">
                 <button class="back-button" onclick="showList()">← 목록으로</button>
                 <button class="edit-button" onclick="editPost()">수정</button>
@@ -617,14 +712,16 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const ADMIN_PASSWORD = 'Dpfsleh105~';
-        let diaries = [], investments = [], investmentFilter = 'all', currentPost = null, currentPostType = null;
+        let diaries = [], investments = [], studies = [], investmentFilter = 'all', currentPost = null, currentPostType = null;
         let currentImageData = null;
         let isEditMode = false;
+        let isStudyUnlocked = false;
         
         window.onload = function() { 
             loadTheme();
             loadDiaries(); 
             loadInvestments();
+            loadStudies();
             updateVisitorCount();
         };
 
@@ -674,6 +771,58 @@
             } catch (error) { 
                 document.getElementById('investmentListContainer').innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">투자 글을 불러오지 못했습니다.</p>'; 
             } 
+        }
+
+        async function loadStudies() { 
+            try { 
+                const snapshot = await db.collection('studies').orderBy('createdAt', 'desc').get(); 
+                studies = []; 
+                snapshot.forEach(doc => { 
+                    studies.push({ id: doc.id, ...doc.data() }); 
+                }); 
+                renderStudyList(); 
+            } catch (error) { 
+                document.getElementById('studyListContainer').innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">공부 글을 불러오지 못했습니다.</p>'; 
+            } 
+        }
+
+        function unlockStudy() {
+            const password = prompt('비밀번호를 입력하세요:');
+            if (password !== ADMIN_PASSWORD) {
+                alert('비밀번호가 틀렸습니다! 🚫');
+                return;
+            }
+            isStudyUnlocked = true;
+            document.getElementById('studyLocked').classList.add('hidden');
+            document.getElementById('studyUnlocked').classList.remove('hidden');
+            document.querySelector('#studySection .lock-icon').textContent = '🔓';
+        }
+
+        function renderStudyList() { 
+            const container = document.getElementById('studyListContainer'); 
+            container.innerHTML = ''; 
+            
+            if (studies.length === 0) { 
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">아직 작성된 공부 글이 없습니다.</p>'; 
+                return; 
+            } 
+            
+            studies.forEach((study, index) => { 
+                const dateTimeFormatted = formatDateTime(study.createdAt);
+                const views = study.views || 0;
+                const hasImage = study.imageData ? '<span class="has-image-badge">📷</span>' : ''; 
+                container.innerHTML += `
+                    <div class="study-item" onclick="showPost('study', ${index})">
+                        <div class="diary-item-left">
+                            <div class="diary-title">${study.title}${hasImage}</div>
+                            <div class="diary-meta">
+                                <span>${dateTimeFormatted}</span>
+                                <span>조회수 ${views}</span>
+                            </div>
+                        </div>
+                        <div class="diary-arrow">→</div>
+                    </div>`; 
+            }); 
         }
         
         function renderDiaryList() { 
@@ -775,7 +924,14 @@
                 existingForm.remove(); 
             } 
             
-            const titleText = isEditMode ? (type === 'diary' ? '일기 수정' : '투자 글 수정') : (type === 'diary' ? '새 일기 작성' : '새 투자 글 작성');
+            let titleText;
+            if (type === 'diary') {
+                titleText = isEditMode ? '일기 수정' : '새 일기 작성';
+            } else if (type === 'investment') {
+                titleText = isEditMode ? '투자 글 수정' : '새 투자 글 작성';
+            } else if (type === 'study') {
+                titleText = isEditMode ? '공부 글 수정' : '새 공부 글 작성';
+            }
             const buttonText = isEditMode ? '수정하기' : '저장하기';
             
             let categorySelect = ''; 
@@ -814,9 +970,17 @@
                 document.getElementById('profileSection').classList.remove('hidden');
                 document.getElementById('diarySection').classList.remove('hidden');
                 document.getElementById('investmentSection').classList.remove('hidden');
+                document.getElementById('studySection').classList.remove('hidden');
             }
             
-            const containerId = type === 'diary' ? 'diaryListContainer' : 'investmentListContainer'; 
+            let containerId;
+            if (type === 'diary') {
+                containerId = 'diaryListContainer';
+            } else if (type === 'investment') {
+                containerId = 'investmentListContainer';
+            } else if (type === 'study') {
+                containerId = 'studyListContainer';
+            }
             document.getElementById(containerId).insertAdjacentHTML('beforebegin', formHtml); 
             setupDragDrop();
             
@@ -905,7 +1069,14 @@
                 return; 
             } 
             
-            const collectionName = type === 'diary' ? 'diaries' : 'investments';
+            let collectionName;
+            if (type === 'diary') {
+                collectionName = 'diaries';
+            } else if (type === 'investment') {
+                collectionName = 'investments';
+            } else if (type === 'study') {
+                collectionName = 'studies';
+            }
             
             if (isEditMode && currentPost) {
                 // 수정 모드
@@ -934,8 +1105,10 @@
                     currentPostType = null;
                     if (type === 'diary') { 
                         loadDiaries(); 
-                    } else { 
+                    } else if (type === 'investment') { 
                         loadInvestments(); 
+                    } else if (type === 'study') {
+                        loadStudies();
                     }
                 } catch (error) {
                     alert('수정 중 오류가 발생했습니다: ' + error.message);
@@ -962,9 +1135,11 @@
                     alert('저장되었습니다! 🎉'); 
                     if (type === 'diary') { 
                         loadDiaries(); 
-                    } else { 
+                    } else if (type === 'investment') { 
                         loadInvestments(); 
-                    } 
+                    } else if (type === 'study') {
+                        loadStudies();
+                    }
                 } catch (error) { 
                     alert('저장 중 오류가 발생했습니다: ' + error.message); 
                 }
@@ -972,12 +1147,26 @@
         }
         
         async function showPost(type, index) { 
-            const post = type === 'diary' ? diaries[index] : investments[index]; 
+            let post;
+            if (type === 'diary') {
+                post = diaries[index];
+            } else if (type === 'investment') {
+                post = investments[index];
+            } else if (type === 'study') {
+                post = studies[index];
+            }
             currentPost = post; 
             currentPostType = type; 
             
             // 조회수 증가
-            const collectionName = type === 'diary' ? 'diaries' : 'investments';
+            let collectionName;
+            if (type === 'diary') {
+                collectionName = 'diaries';
+            } else if (type === 'investment') {
+                collectionName = 'investments';
+            } else if (type === 'study') {
+                collectionName = 'studies';
+            }
             const currentViews = post.views || 0;
             await db.collection(collectionName).doc(post.id).update({
                 views: currentViews + 1
@@ -1000,6 +1189,7 @@
             document.getElementById('profileSection').classList.add('hidden'); 
             document.getElementById('diarySection').classList.add('hidden'); 
             document.getElementById('investmentSection').classList.add('hidden'); 
+            document.getElementById('studySection').classList.add('hidden'); 
             document.getElementById('diaryDetail').classList.add('active'); 
         }
         
@@ -1014,15 +1204,24 @@
                 return; 
             } 
             try { 
-                const collectionName = currentPostType === 'diary' ? 'diaries' : 'investments'; 
+                let collectionName;
+                if (currentPostType === 'diary') {
+                    collectionName = 'diaries';
+                } else if (currentPostType === 'investment') {
+                    collectionName = 'investments';
+                } else if (currentPostType === 'study') {
+                    collectionName = 'studies';
+                }
                 await db.collection(collectionName).doc(currentPost.id).delete(); 
                 alert('삭제되었습니다!'); 
                 showList(); 
                 if (currentPostType === 'diary') { 
                     loadDiaries(); 
-                } else { 
+                } else if (currentPostType === 'investment') { 
                     loadInvestments(); 
-                } 
+                } else if (currentPostType === 'study') {
+                    loadStudies();
+                }
             } catch (error) { 
                 alert('삭제 중 오류가 발생했습니다: ' + error.message); 
             } 
@@ -1032,6 +1231,7 @@
             document.getElementById('profileSection').classList.remove('hidden'); 
             document.getElementById('diarySection').classList.remove('hidden'); 
             document.getElementById('investmentSection').classList.remove('hidden'); 
+            document.getElementById('studySection').classList.remove('hidden'); 
             document.getElementById('diaryDetail').classList.remove('active'); 
             currentPost = null; 
             currentPostType = null;
@@ -1039,6 +1239,7 @@
             // 목록 새로고침 (조회수 업데이트 반영)
             loadDiaries();
             loadInvestments();
+            loadStudies();
         }
     </script>
 </body>
