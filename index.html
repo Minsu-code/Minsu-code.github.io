@@ -376,6 +376,21 @@
 
         .back-button:hover { opacity: 0.8; }
 
+        .edit-button { 
+            background: #2196F3; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-bottom: 30px; 
+            margin-left: 10px; 
+            transition: background 0.2s; 
+        }
+
+        .edit-button:hover { background: #1976D2; }
+
         .delete-button { 
             background: #e53935; 
             color: white; 
@@ -555,7 +570,8 @@
             </div>
             <div id="diaryDetail" class="diary-detail">
                 <button class="back-button" onclick="showList()">← 목록으로</button>
-                <button class="delete-button" onclick="deletePost()">🗑️ 삭제</button>
+                <button class="edit-button" onclick="editPost()">수정</button>
+                <button class="delete-button" onclick="deletePost()">삭제</button>
                 <div class="detail-meta">
                     <span id="detailDate"></span>
                     <span id="detailViews"></span>
@@ -603,6 +619,7 @@
         const ADMIN_PASSWORD = 'Dpfsleh105~';
         let diaries = [], investments = [], investmentFilter = 'all', currentPost = null, currentPostType = null;
         let currentImageData = null;
+        let isEditMode = false;
         
         window.onload = function() { 
             loadTheme();
@@ -743,26 +760,78 @@
             renderInvestmentList(); 
         }
         
-        function showWriteForm(type) { 
+        function showWriteForm(type, editData = null) { 
             const password = prompt('비밀번호를 입력하세요:'); 
             if (password !== ADMIN_PASSWORD) { 
                 alert('비밀번호가 틀렸습니다! 🚫'); 
                 return; 
             } 
-            currentImageData = null; 
+            
+            isEditMode = !!editData;
+            currentImageData = editData ? editData.imageData || null : null; 
+            
             const existingForm = document.getElementById('writeForm'); 
             if (existingForm) { 
                 existingForm.remove(); 
             } 
-            const titleText = type === 'diary' ? '일기' : '투자 글'; 
+            
+            const titleText = isEditMode ? (type === 'diary' ? '일기 수정' : '투자 글 수정') : (type === 'diary' ? '새 일기 작성' : '새 투자 글 작성');
+            const buttonText = isEditMode ? '수정하기' : '저장하기';
+            
             let categorySelect = ''; 
             if (type === 'investment') { 
-                categorySelect = '<div class="form-group"><label>카테고리</label><select id="postCategory"><option value="stock">주식</option><option value="coin">코인</option></select></div>'; 
-            } 
-            const formHtml = '<div class="write-form active" id="writeForm"><h3>✏️ 새 ' + titleText + ' 작성</h3><div class="form-group"><label>제목</label><input type="text" id="postTitle" placeholder="제목을 입력하세요"></div>' + categorySelect + '<div class="form-group"><label>내용</label><textarea id="postContent" placeholder="내용을 작성하세요..."></textarea></div><div class="form-group"><label>📷 이미지 첨부 (선택)</label><div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById(\'imageInput\').click()"><p>클릭하여 이미지 선택</p><p style="font-size:12px;color:var(--text-muted);">또는 이미지를 여기에 드래그</p></div><input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)"><div id="imagePreviewContainer"></div></div><div class="form-buttons"><button class="submit-btn" onclick="savePost(\'' + type + '\')">저장하기</button><button class="cancel-btn" onclick="hideWriteForm()">취소</button></div></div>'; 
+                const stockSelected = editData && editData.category === 'stock' ? 'selected' : '';
+                const coinSelected = editData && editData.category === 'coin' ? 'selected' : '';
+                categorySelect = `<div class="form-group"><label>카테고리</label><select id="postCategory"><option value="stock" ${stockSelected}>주식</option><option value="coin" ${coinSelected}>코인</option></select></div>`; 
+            }
+            
+            const titleValue = editData ? editData.title : '';
+            const contentValue = editData ? editData.content : '';
+            
+            const formHtml = `<div class="write-form active" id="writeForm">
+                <h3>✏️ ${titleText}</h3>
+                <div class="form-group"><label>제목</label><input type="text" id="postTitle" placeholder="제목을 입력하세요" value="${titleValue}"></div>
+                ${categorySelect}
+                <div class="form-group"><label>내용</label><textarea id="postContent" placeholder="내용을 작성하세요...">${contentValue}</textarea></div>
+                <div class="form-group">
+                    <label>📷 이미지 첨부 (선택)</label>
+                    <div class="image-upload-area ${currentImageData ? 'has-image' : ''}" id="imageUploadArea" onclick="document.getElementById('imageInput').click()">
+                        <p>클릭하여 이미지 선택</p>
+                        <p style="font-size:12px;color:var(--text-muted);">또는 이미지를 여기에 드래그</p>
+                    </div>
+                    <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+                    <div id="imagePreviewContainer">${currentImageData ? `<img class="image-preview" src="${currentImageData}" alt="미리보기"><br><button class="remove-image-btn" onclick="removeImage()">❌ 이미지 삭제</button>` : ''}</div>
+                </div>
+                <div class="form-buttons">
+                    <button class="submit-btn" onclick="savePost('${type}')">${buttonText}</button>
+                    <button class="cancel-btn" onclick="hideWriteForm()">취소</button>
+                </div>
+            </div>`;
+            
+            if (isEditMode) {
+                // 수정 모드일 때는 상세 페이지에서 폼 표시
+                document.getElementById('diaryDetail').classList.remove('active');
+                document.getElementById('profileSection').classList.remove('hidden');
+                document.getElementById('diarySection').classList.remove('hidden');
+                document.getElementById('investmentSection').classList.remove('hidden');
+            }
+            
             const containerId = type === 'diary' ? 'diaryListContainer' : 'investmentListContainer'; 
             document.getElementById(containerId).insertAdjacentHTML('beforebegin', formHtml); 
-            setupDragDrop(); 
+            setupDragDrop();
+            
+            // 폼으로 스크롤
+            document.getElementById('writeForm').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function editPost() {
+            const password = prompt('비밀번호를 입력하세요:'); 
+            if (password !== ADMIN_PASSWORD) { 
+                alert('비밀번호가 틀렸습니다! 🚫'); 
+                return; 
+            }
+            
+            showWriteForm(currentPostType, currentPost);
         }
         
         function setupDragDrop() { 
@@ -816,7 +885,8 @@
         function hideWriteForm() { 
             const form = document.getElementById('writeForm'); 
             if (form) form.remove(); 
-            currentImageData = null; 
+            currentImageData = null;
+            isEditMode = false;
         }
         
         async function savePost(type) { 
@@ -835,33 +905,70 @@
                 return; 
             } 
             
-            const newPost = { 
-                title: title, 
-                content: content, 
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                views: 0
-            }; 
+            const collectionName = type === 'diary' ? 'diaries' : 'investments';
             
-            if (type === 'investment') { 
-                newPost.category = category; 
-            } 
-            if (currentImageData) { 
-                newPost.imageData = currentImageData; 
-            } 
-            
-            try { 
-                const collectionName = type === 'diary' ? 'diaries' : 'investments'; 
-                await db.collection(collectionName).add(newPost); 
-                hideWriteForm(); 
-                alert('저장되었습니다! 🎉'); 
-                if (type === 'diary') { 
-                    loadDiaries(); 
-                } else { 
-                    loadInvestments(); 
+            if (isEditMode && currentPost) {
+                // 수정 모드
+                const updateData = { 
+                    title: title, 
+                    content: content,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                if (type === 'investment') { 
+                    updateData.category = category; 
+                }
+                
+                if (currentImageData) { 
+                    updateData.imageData = currentImageData; 
+                } else {
+                    updateData.imageData = firebase.firestore.FieldValue.delete();
+                }
+                
+                try {
+                    await db.collection(collectionName).doc(currentPost.id).update(updateData);
+                    hideWriteForm();
+                    alert('수정되었습니다! ✅');
+                    isEditMode = false;
+                    currentPost = null;
+                    currentPostType = null;
+                    if (type === 'diary') { 
+                        loadDiaries(); 
+                    } else { 
+                        loadInvestments(); 
+                    }
+                } catch (error) {
+                    alert('수정 중 오류가 발생했습니다: ' + error.message);
+                }
+            } else {
+                // 새 글 작성 모드
+                const newPost = { 
+                    title: title, 
+                    content: content, 
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    views: 0
+                }; 
+                
+                if (type === 'investment') { 
+                    newPost.category = category; 
                 } 
-            } catch (error) { 
-                alert('저장 중 오류가 발생했습니다: ' + error.message); 
-            } 
+                if (currentImageData) { 
+                    newPost.imageData = currentImageData; 
+                } 
+                
+                try { 
+                    await db.collection(collectionName).add(newPost); 
+                    hideWriteForm(); 
+                    alert('저장되었습니다! 🎉'); 
+                    if (type === 'diary') { 
+                        loadDiaries(); 
+                    } else { 
+                        loadInvestments(); 
+                    } 
+                } catch (error) { 
+                    alert('저장 중 오류가 발생했습니다: ' + error.message); 
+                }
+            }
         }
         
         async function showPost(type, index) { 
@@ -909,7 +1016,7 @@
             try { 
                 const collectionName = currentPostType === 'diary' ? 'diaries' : 'investments'; 
                 await db.collection(collectionName).doc(currentPost.id).delete(); 
-                alert('삭제되었습니다! 🗑️'); 
+                alert('삭제되었습니다!'); 
                 showList(); 
                 if (currentPostType === 'diary') { 
                     loadDiaries(); 
@@ -928,6 +1035,7 @@
             document.getElementById('diaryDetail').classList.remove('active'); 
             currentPost = null; 
             currentPostType = null;
+            isEditMode = false;
             // 목록 새로고침 (조회수 업데이트 반영)
             loadDiaries();
             loadInvestments();
