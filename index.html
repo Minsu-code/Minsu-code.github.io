@@ -284,6 +284,12 @@
         [data-theme="dark"] .category-badge.stock { background: #1b3d1f; color: #81c784; }
         [data-theme="dark"] .category-badge.coin { background: #3d2914; color: #ffb74d; }
 
+        .category-badge.cpa { background: #e3f2fd; color: #1565c0; }
+        .category-badge.cert { background: #f3e5f5; color: #7b1fa2; }
+
+        [data-theme="dark"] .category-badge.cpa { background: #1a3a5c; color: #64b5f6; }
+        [data-theme="dark"] .category-badge.cert { background: #3d1f47; color: #ba68c8; }
+
         .write-form { 
             background: var(--bg-card); 
             border: 2px solid var(--border-color); 
@@ -690,6 +696,11 @@
             </div>
             <div id="studySection" class="diary-section">
                 <h2>공부 <span class="lock-icon" onclick="unlockStudy()">🔒</span></h2>
+                <div class="category-filter">
+                    <button class="category-btn active" onclick="filterStudy('all')">전체</button>
+                    <button class="category-btn" onclick="filterStudy('cpa')">CPA</button>
+                    <button class="category-btn" onclick="filterStudy('cert')">자격시험</button>
+                </div>
                 <button class="write-btn" onclick="showWriteForm('study')">작성</button>
                 <div id="studyListContainer"><div class="loading">불러오는 중...</div></div>
                 <div class="pagination" id="studyPagination"></div>
@@ -751,6 +762,7 @@
         // 페이지네이션
         const ITEMS_PER_PAGE = 5;
         let diaryPage = 1, investmentPage = 1, studyPage = 1;
+        let studyFilter = 'all';
         
         window.onload = function() { 
             loadTheme();
@@ -837,25 +849,28 @@
             container.innerHTML = ''; 
             paginationContainer.innerHTML = '';
             
-            if (studies.length === 0) { 
+            const filteredStudies = studyFilter === 'all' ? studies : studies.filter(s => s.category === studyFilter);
+            
+            if (filteredStudies.length === 0) { 
                 container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">아직 작성된 공부 글이 없습니다.</p>'; 
                 return; 
             } 
             
-            const totalPages = Math.ceil(studies.length / ITEMS_PER_PAGE);
+            const totalPages = Math.ceil(filteredStudies.length / ITEMS_PER_PAGE);
             const startIndex = (studyPage - 1) * ITEMS_PER_PAGE;
             const endIndex = startIndex + ITEMS_PER_PAGE;
-            const pageItems = studies.slice(startIndex, endIndex);
+            const pageItems = filteredStudies.slice(startIndex, endIndex);
             
             pageItems.forEach((study, idx) => { 
-                const index = startIndex + idx;
+                const realIndex = studies.indexOf(study);
                 const dateTimeFormatted = formatDateTime(study.createdAt);
                 const views = study.views || 0;
-                const hasImage = study.imageData ? '<span class="has-image-badge">📷</span>' : ''; 
+                const categoryText = study.category === 'cpa' ? 'CPA' : '자격시험'; 
+                const categoryClass = study.category;
                 container.innerHTML += `
-                    <div class="study-item" onclick="showStudyPost(${index})">
+                    <div class="study-item" onclick="showStudyPost(${realIndex})">
                         <div class="diary-item-left">
-                            <div class="diary-title">${study.title}${hasImage}</div>
+                            <div class="diary-title">${study.title}<span class="category-badge ${categoryClass}">${categoryText}</span></div>
                             <div class="diary-meta">
                                 <span>${dateTimeFormatted}</span>
                                 <span>조회수 ${views}</span>
@@ -868,6 +883,16 @@
             if (totalPages > 1) {
                 renderPagination(paginationContainer, totalPages, studyPage, 'study');
             }
+        }
+
+        function filterStudy(category) { 
+            studyFilter = category;
+            studyPage = 1; // 페이지 초기화
+            document.querySelectorAll('#studySection .category-btn').forEach(btn => { 
+                btn.classList.remove('active'); 
+            }); 
+            event.target.classList.add('active'); 
+            renderStudyList(); 
         }
 
         function showStudyPost(index) {
@@ -939,11 +964,10 @@
                 const index = startIndex + idx;
                 const dateTimeFormatted = formatDateTime(diary.createdAt);
                 const views = diary.views || 0;
-                const hasImage = diary.imageData ? '<span class="has-image-badge">📷</span>' : ''; 
                 container.innerHTML += `
                     <div class="diary-item" onclick="showPost('diary', ${index})">
                         <div class="diary-item-left">
-                            <div class="diary-title">${diary.title}${hasImage}</div>
+                            <div class="diary-title">${diary.title}</div>
                             <div class="diary-meta">
                                 <span>${dateTimeFormatted}</span>
                                 <span>조회수 ${views}</span>
@@ -980,12 +1004,11 @@
                 const dateTimeFormatted = formatDateTime(investment.createdAt);
                 const views = investment.views || 0;
                 const categoryText = investment.category === 'stock' ? '주식' : '코인'; 
-                const categoryClass = investment.category; 
-                const hasImage = investment.imageData ? '<span class="has-image-badge">📷</span>' : ''; 
+                const categoryClass = investment.category;
                 container.innerHTML += `
                     <div class="diary-item" onclick="showPost('investment', ${realIndex})">
                         <div class="diary-item-left">
-                            <div class="diary-title">${investment.title}<span class="category-badge ${categoryClass}">${categoryText}</span>${hasImage}</div>
+                            <div class="diary-title">${investment.title}<span class="category-badge ${categoryClass}">${categoryText}</span></div>
                             <div class="diary-meta">
                                 <span>${dateTimeFormatted}</span>
                                 <span>조회수 ${views}</span>
@@ -1061,6 +1084,10 @@
                 const stockSelected = editData && editData.category === 'stock' ? 'selected' : '';
                 const coinSelected = editData && editData.category === 'coin' ? 'selected' : '';
                 categorySelect = `<div class="form-group"><label>카테고리</label><select id="postCategory"><option value="stock" ${stockSelected}>주식</option><option value="coin" ${coinSelected}>코인</option></select></div>`; 
+            } else if (type === 'study') {
+                const cpaSelected = editData && editData.category === 'cpa' ? 'selected' : '';
+                const certSelected = editData && editData.category === 'cert' ? 'selected' : '';
+                categorySelect = `<div class="form-group"><label>카테고리</label><select id="postCategory"><option value="cpa" ${cpaSelected}>CPA</option><option value="cert" ${certSelected}>자격시험</option></select></div>`; 
             }
             
             const titleValue = editData ? editData.title : '';
@@ -1179,7 +1206,7 @@
             const title = document.getElementById('postTitle').value; 
             const content = document.getElementById('postContent').value; 
             let category = null; 
-            if (type === 'investment') { 
+            if (type === 'investment' || type === 'study') { 
                 category = document.getElementById('postCategory').value; 
             } 
             if (!title.trim()) { 
@@ -1208,7 +1235,7 @@
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 
-                if (type === 'investment') { 
+                if (type === 'investment' || type === 'study') { 
                     updateData.category = category; 
                 }
                 
@@ -1244,7 +1271,7 @@
                     views: 0
                 }; 
                 
-                if (type === 'investment') { 
+                if (type === 'investment' || type === 'study') { 
                     newPost.category = category; 
                 } 
                 if (currentImageData) { 
